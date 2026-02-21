@@ -1,0 +1,295 @@
+.footer{
+    /* margin-top: 200px; */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Sửa lại dòng này */
+    height: 200px;
+    background-color: var(--Aka);
+    color: var(--Shiro);
+    font-family: 'Oswald', sans-serif;
+}
+
+.footerLeftContent{
+    font-size: 1rem;
+    text-decoration: none;
+    color: var(--Shiro);
+}
+.footerLeft{
+    height: 100%;
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    padding: 50px 30px 40px 50px;
+}
+.aboutus{
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.leftNavLink{
+    width: 70%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+.rating{
+    display: flex;
+    justify-self: start;
+    align-self: start;
+    text-align: center;
+    flex-direction: row;
+    text-decoration: none;
+    color: var(--Shiro);
+    font-size: 1.2rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.leftPolicy{
+    margin-top: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+}
+
+.footerLeft a:hover, .leftPolicy a:hover{
+    color: var(--Kuro);
+}
+
+.footerCenter{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.footerRight{
+    font-size: 1rem;
+    font-weight: bold;
+    height: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    padding: 50px 50px 10px 30px;
+    width: 20%; /* Thêm dòng này, điều chỉnh theo ý bạn */
+    box-sizing: border-box;
+}
+
+.signUp{
+    margin-bottom: 10px;
+}
+
+.inputContainer input{
+    width: 150px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid white;
+}
+
+.registerButton{
+    padding: 6px 12px;
+    margin: 0 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    background-color: var(--Ao);
+    color: var(--Shiro);
+}
+
+.registerButton:hover {
+    background-color: var(--Shiro);
+    color: var(--Kuro);
+}
+
+input {
+    width: 150px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid white;
+    outline: none;
+    font-size: 0.8rem;
+    color: white;
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+input::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* Light red placeholder */
+}
+
+.logo {
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    font-family: 'Gasoek One', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: #e00000;
+    text-decoration: none;
+}
+
+.footerLogo{
+    font-size: 1.5rem;
+    color: var(--Shiro);
+}
+
+.footerIcon{
+    display: flex;
+    font-size: 1.3rem;
+    width: 80%;
+    justify-content: space-between;
+    justify-self: center;
+    align-items: center;
+    color: var(--Shiro);
+    margin-top: 32px;
+}
+
+.successMesg {
+    width: 100%;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    word-break: break-word;
+    text-align: center;
+}
+
+@media (max-width: 1616px) {
+    .registerButton{
+        width: 100%;
+    }
+
+    .inputContainer{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        gap: 5px
+    }
+
+    .inputContainer input{
+        width: 100%;
+        justify-self: center;
+    }
+}
+
+@media (max-width: 1527px) {
+    .footer {
+        height: auto;
+        padding: 32px 0 0 0;
+    }
+    .footerRight, .successMesg{
+        font-size: 14.5px;
+    }
+}
+
+@media (max-width: 1280px) {
+    .footer {
+        height: auto;
+        padding: 32px 0 0 0;
+    }
+    .successMesg{
+        font-size: 0.7rem;
+    }
+}
+
+/* Responsive styles */
+@media (max-width: 1100px) {
+    .footer {
+        flex-direction: column;
+        height: auto;
+        padding: 24px 0 0 0;
+        position: relative;
+    }
+    .footerLeft, .footerRight {
+        width: 90%;
+        padding: 24px 0 0 0;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .footerCenter {
+        position: static;
+        transform: none;
+        margin: 16px 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .footerIcon {
+        width: 100%;
+        justify-content: center;
+        margin-top: 16px;
+    }
+}
+
+@media (max-width: 700px) {
+    .footer {
+        flex-direction: column;
+        height: auto;
+        padding: 16px 0 0 0;
+    }
+    .footerLeft, .footerRight {
+        width: 100%;
+        padding: 16px 0 0 0;
+        align-items: flex-start;
+    }
+    .footerCenter {
+        margin: 12px 0;
+    }
+    .footerLogo {
+        font-size: 1.2rem;
+    }
+    .logo {
+        font-size: 1.5rem;
+    }
+    .footerIcon {
+        font-size: 1.1rem;
+    }
+    .aboutus {
+        font-size: 1rem;
+    }
+    .footerLeftContent, .rating {
+        font-size: 0.95rem;
+    }
+    .registerButton, input, .inputContainer input {
+        font-size: 0.9rem;
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 500px) {
+    .footer {
+        padding: 8px 0 0 0;
+    }
+    .footerLeft, .footerRight {
+        padding: 8px 0 0 0;
+    }
+    .footerLogo, .logo {
+        font-size: 1rem;
+    }
+    .footerIcon {
+        font-size: 1rem;
+        margin-top: 8px;
+    }
+    .aboutus {
+        font-size: 0.9rem;
+    }
+    .footerLeftContent, .rating {
+        font-size: 0.85rem;
+    }
+    .registerButton, input, .inputContainer input {
+        font-size: 0.8rem;
+        width: 100%;
+        min-width: 0;
+    }
+    .successMesg {
+        font-size: 0.7rem;
+    }
+}
