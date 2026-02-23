@@ -1,5 +1,5 @@
 import Table from '../models/table.model.js';
-import Tblconfig from '../models/tblconfig.js';
+import Tblconfig from '../models/table_types.js';
 
 export const createTable = async (req, res) => {
     const {quantity, time, date, name, phone, email, occasion, specialRequest, tableType, depositStatus, bill, tableID, status} = req.body;
