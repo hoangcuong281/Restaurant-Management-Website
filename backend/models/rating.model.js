@@ -1,11 +1,28 @@
-import mongoose, { startSession } from 'mongoose';
-const Schema = mongoose.Schema;
+import db from '../config/db.js'
 
-const ratingSchema = new Schema({
-    ratingID: {type: Number, required: true},
-    email: {type: String, required: true},
-    star: {type: Number, required: true},
-    feedback: {type: String, required: false},
-});
+const Rating = {
+    create: async (rating, user_id, booking_id) => {
+        db.execute(
+            `INSERT INTO ratings VALUE ?,?,?,?,?`,
+            [rating.email, rating.star, rating.comment, user_id, booking_id]
+        );
+    },
 
-export default mongoose.model('Rating', ratingSchema);
+    read: async() => {
+        const [row] = await db.execute(
+            `SELECT * FROM ratings`
+        );
+        return row[0];
+    },
+
+    delete: async (rating) => {
+        db.execute(
+            `DELETE FROM ratings WHERE rating_id = ?`,
+            [rating.rating_id]
+        );
+    },
+
+
+}
+
+export default Rating;

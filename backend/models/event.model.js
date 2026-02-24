@@ -3,7 +3,8 @@ import db from '../config/db.js';
 const Event = {
     create: async (event) => {
         db.execute(
-            `INSERT INTO events VALUE (?,?,?,?);`, 
+            `INSERT INTO events (title, description, date, user_id)
+            VALUE (?,?,?,?);`, 
             [event.title, event.description, event.date, event.user_id]
         );
     },

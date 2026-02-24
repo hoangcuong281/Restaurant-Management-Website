@@ -1,3 +1,4 @@
+DROP DATABASE res_mag_db;
 CREATE DATABASE res_mag_db;
 USE res_mag_db;
 
@@ -20,23 +21,12 @@ CREATE TABLE events (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE table_types (
-    table_type_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    capacity INT NOT NULL,
-    image VARCHAR(255),
-    deposit_price DECIMAL(10,2) DEFAULT 0
-);
-
 CREATE TABLE restaurant_tables (
     table_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quantity INT DEFAULT 1,
     location VARCHAR(100),
     table_number VARCHAR(20) UNIQUE,
-    status ENUM('available','maintenance','hidden') DEFAULT 'available',
-    table_type_id BIGINT NOT NULL,
-    FOREIGN KEY (table_type_id) REFERENCES table_types(table_type_id)
-        ON DELETE RESTRICT ON UPDATE CASCADE
+    status ENUM('available','maintenance','hidden') DEFAULT 'available'
 );
 
 CREATE TABLE table_booking (
@@ -69,7 +59,7 @@ CREATE TABLE meals (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     img VARCHAR(255),
-    category VARCHAR(100),
+    category VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
     highlight BOOLEAN DEFAULT FALSE
 );
@@ -115,3 +105,4 @@ CREATE INDEX idx_booking_time ON table_booking(table_id, booking_time, end_time)
 CREATE INDEX idx_order_booking ON orders(booking_id);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_payment_order ON payments(order_id);
+
