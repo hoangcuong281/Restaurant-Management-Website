@@ -1,10 +1,35 @@
-import mongoose from "mongoose";
-const Schema = mongoose.Schema;
+import db from '../config/db.js';
 
-const eventSchema = new Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    date: { type: Date, required: true },
-});
+const Event = {
+    create: async (event) => {
+        db.execute(
+            `INSERT INTO events VALUE (?,?,?,?);`, 
+            [event.title, event.description, event.date, event.user_id]
+        );
+    },
 
-export default mongoose.model('Event', eventSchema);
+    delete: async (event) => {
+        db.execute(
+            `DELETE FROM  events WHERE event_id = ?`,
+            [event.event_id]
+        );
+    },
+
+    update: async (updateEvent, id) => {
+
+        db.execute(
+            `UPDATE events
+            SET ? WHERE id = ?`,
+            [updateEvent, id]
+        )
+    },
+
+    read: async () => {
+        const [row] = await db.execute(
+            `SELECT * FROM events`
+        );
+        return rows[0];
+    },
+}
+
+export default Event;

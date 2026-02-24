@@ -1,10 +1,10 @@
-import db from '../config/db.js'
+import db from '../config/db.js';
 
 const User = {
 
     findByEmail: async (email) => {
         const [rows] = await db.execute(
-            'SELECT * FROM users WHERE email = ?',
+            `SELECT * FROM users WHERE email = ?`,
             [email]
         );
         return rows[0];
