@@ -1,4 +1,5 @@
 import db from '../config/db.js';
+import bcrypt from 'bcryptjs';
 
 const User = {
 
@@ -24,6 +25,14 @@ const User = {
             VALUE (?,?,?,?,?)`,
             [user.name, user.email, user.password_hash, user.role, user.phone]
         );
+    },
+
+    authenticate: async (user,pwd) => {
+        if (!user) return 0;
+
+        const isMatch = await bcrypt.compare(pwd, user.password_hash);
+        if (isMatch) return 1;
+        return 0;
     }
 }
 

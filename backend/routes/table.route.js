@@ -1,28 +1,28 @@
-import express from 'express';
-import { createAdminTable, createTable, getTables, getTableById, updateTableDepositStatus, updateTable, updateTableBill, deleteTable, getAvailTbls, getTblConfig, getTblConfigById } from "../controllers/table.controller.js";
+// import express from 'express';
+// import { createAdminTable, createTable, getTables, getTableById, updateTableDepositStatus, updateTable, updateTableBill, deleteTable, getAvailTbls, getTblConfig, getTblConfigById } from "../controllers/table.controller.js";
 
-const router = express.Router();
+// const router = express.Router();
 
-router.get('/', getTables);
+// router.get('/', getTables);
 
-router.get('/config', getTblConfig);
+// router.get('/config', getTblConfig);
 
-router.get('/config/:id', getTblConfigById);
+// router.get('/config/:id', getTblConfigById);
 
-router.get('/:id', getTableById);
+// router.get('/:id', getTableById);
 
-router.post('/', createTable);
+// router.post('/', createTable);
 
-router.put('/:id', updateTableDepositStatus);
+// router.put('/:id', updateTableDepositStatus);
 
-router.put('/update/:id', updateTable);
+// router.put('/update/:id', updateTable);
 
-router.put('/bill/:id', updateTableBill);
+// router.put('/bill/:id', updateTableBill);
 
-router.delete('/:id', deleteTable);
+// router.delete('/:id', deleteTable);
 
-router.get('/avail/:date/:time', getAvailTbls);
+// router.get('/avail/:date/:time', getAvailTbls);
 
-router.post('/admin', createAdminTable);
+// router.post('/admin', createAdminTable);
 
-export default router;
+// export default router;
