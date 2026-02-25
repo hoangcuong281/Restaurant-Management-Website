@@ -2,32 +2,46 @@ import db from '../config/db.js'
 
 const Meal = {
     create: async (meal) => {
-        db.execute(
+        await db.execute(
             `INSERT INTO meals (name, description, img, category, price)
-            VALUE ?,?,?,?,?`,
+            VALUE (?,?,?,?,?)`,
             [meal.name, meal.description, meal.img, meal.category, meal.price]
         );
     },
 
     update: async (updatedMeal, id) => {
-        db.execute(
+        const fields = Object.keys(updatedMeal);
+        const values = Object.values(updatedMeal);
+
+        const setClause = fields.map(field => `${field}=?`).join(", ");
+
+        await db.execute(
             `UPDATE meals
-            SET ? WHERE meal_id=?`,
-            [updatedMeal, id]
+            SET ${setClause} WHERE meal_id=?`,
+            [...values, id]
         );
     },
 
     read: async() => {
         const [row] = await db.execute(
-            `SELECT * FROM meals`
+            `SELECT * FROM meals` 
+        );
+        return row;
+    },
+
+    findById: async(id) => {
+        const [row] = await db.execute(
+            `SELECT * FROM meals
+            WHERE meal_id=?`,
+            [id]
         );
         return row[0];
     },
 
-    delete: async (meal) => {
-        db.execute(
+    delete: async (id) => {
+        await db.execute(
             `DELETE FROM meals WHERE meal_id = ?`,
-            [meal.meal_id]
+            [id]
         );
     },
 

@@ -2,7 +2,7 @@ import Meal from "../models/meal.model.js";
 
 export const getMenu = async (req, res) => {
     try {
-        const meals = await Meal.find();
+        const meals = await Meal.read();
         res.status(200).json(meals);
     } catch (error) {
         res.status(500).json({message: 'Failed to fetch meals'});
@@ -20,14 +20,13 @@ export const getMealById = async (req, res) => {
 }
 
 export const createMeal = async (req, res) => {
-    const {name, description, img, category, price} = req.body;
-    const highlight = false;
-    if(!name || !description || !img || !category || !price) {
+    const {name, description=null, img=null, category, price} = req.body;
+    if(!name || !category || !price) {
         return res.status(400).json({message: 'All fields are required'});
     }
-    const meal = new Meal({name, description, img, category, price, highlight});
+    const meal = {name, description, img, category, price};
     try {
-        await meal.save();
+        await Meal.create(meal);
         res.status(201).json(meal);
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -36,12 +35,11 @@ export const createMeal = async (req, res) => {
                 details: error.message
             });
         }
-        if (error.code === 11000) { // Duplicate key error
+        if (error.code === 11000) {
             return res.status(409).json({
                 message: 'A meal with this name already exists'
             });
         }
-        // Generic server error
         res.status(500).json({
             message: 'Failed to create meal',
             details: error.message
@@ -53,43 +51,34 @@ export const updateMeal = async (req, res) => {
     const {id} = req.params;
     const allowedFields = ['name', 'description', 'img', 'category', 'highlight', 'price'];
     
-    // Check for unknown fields
-    const unknownFields = Object.keys(req.body).filter(key => !allowedFields.includes(key));
+    const exist = await Meal.findById(id);
+    if (!exist) return res.status(400).json({message: 'Meal not found!'});
+
+    const unknownFields = Object.keys(req.body)
+        .filter(field => !allowedFields.includes(field));
     if (unknownFields.length > 0) {
         return res.status(400).json({
             message: `Invalid fields detected: ${unknownFields.join(', ')}`,
             allowedFields
         });
     }
-
-    const {name, description, img, category, highlight, price} = req.body;
     
-    // Create update object with only valid fields
     const updateData = {};
-    if (name) updateData.name = name;
-    if (description) updateData.description = description;
-    if (img) updateData.img = img;
-    if (category) updateData.category = category;
-    if (price) updateData.price = price;
-    // Special handling for boolean highlight field
-    if (typeof highlight === 'boolean') {
-        updateData.highlight = highlight;
-    }
+    
+    allowedFields.forEach(field => {
+        if (req.body[field] !== undefined){
+            updateData[field] = req.body[field]
+        }
+    })
 
     try {
-        const updatedMeal = await Meal.findByIdAndUpdate(
-            id, 
+        await Meal.update(
             updateData,
-            { new: true, runValidators: true }
+            id
         );
 
-        if (!updatedMeal) {
-            return res.status(404).json({ message: 'Meal not found' });
-        }
-
         res.status(200).json({
-            message: 'Updated successfully',
-            meal: updatedMeal
+            message: 'Updated successfully'
         });
     } catch (error) {
         if (error.name === 'CastError') {
@@ -114,7 +103,7 @@ export const updateMeal = async (req, res) => {
 export const deleteMeal = async (req, res) => {
     const {id} = req.params;    
     try {
-        await Meal.findByIdAndDelete(id);
+        await Meal.delete(id);
         res.status(200).json({message: 'Deleted successfully'});
     } catch (error) {
         res.status(500).json({message: 'Product not found'});
