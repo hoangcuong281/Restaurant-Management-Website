@@ -5,6 +5,15 @@ import dotenv from 'dotenv'
 
 dotenv.config();
 
+export const check_token = async (req, res) => {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    if (!token) return res.status(401).json({valid: false, message: "Unauthorized!"});
+    jwt.verify(token, process.env.SECRET_KEY, (err, decoded)=>{
+        if (err) return res.status(400).json({valid: false, message: "Expired or not available token!"});
+        return res.status(200).json({valid: true, message: "Valid token!"})
+    });
+}
+
 export const sign_up = async (req, res) => {
     const {name, email, role, password, phone} = req.body;
     if(!name || !email || !role) return res.status(400).json({message: "Missing required fields"});
@@ -23,26 +32,31 @@ export const sign_up = async (req, res) => {
         phone
     });
     
-    res.status(200).json({message: "Registed successfully"});
+    return res.status(200).json({message: "Registed successfully"});
 }
 
 export const log_in = async (req,res) => {
     const {email, password} = req.body;
-    console.log(email, password);
     if (!email || !password) return res.status(400).json({message: 'Email or Password cannot be blank!'});
     const user = await User.findByEmail(email);
+    if (!user) return res.status(400).json({message: "Email or Password is incorrect"});
     const auth = await User.authenticate(user,password);
-    if (auth) {
-        const token = jwt.sign(
-            {user_id: user.user_id, role: user.role}, 
-            process.env.SECRET_KEY,
-            {expiresIn: '12h'}
-        );
-        res.status(200).json({
-            message: "Successfully logged in", 
-            token, 
-            user_id: user.user_id,
-            role: user.role
-        });
-    }else res.status(400).json({message: "Email or Password is incorrect"})
+    if (!auth) return res.status(400).json({message: "Email or Password is incorrect"});
+    const token = jwt.sign(
+        {
+            user_id: user.user_id, 
+            role: user.role,
+        }, 
+        process.env.SECRET_KEY,
+        {expiresIn: '12h'}
+    );
+    return res.status(200).json({
+        message: "Successfully logged in", 
+        token, 
+        user_id: user.user_id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        phone: user.phone
+    });
 }
