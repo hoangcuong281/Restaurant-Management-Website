@@ -1,8 +1,28 @@
 import db from '../config/db.js'
 
 const Order = {
+
+    findOrderById: async (id) => {
+        const [row] = await db.execute(
+            `SELECT * FROM orders
+            WHERE id=?`,
+            [id]
+        );
+        return row[0];
+    },
+
+
+    findOrderByUser: async (user_id) => {
+        const [row] = await db.execute(
+            `SELECT * FROM orders
+            WHERE user_id=?`,
+            [user_id]
+        );
+        return row;
+    },
+
     create: async (order, booking_id) => {
-        db.execute(
+        await db.execute(
             `INSERT INTO orders (booking_id, opened_at, closed_at, status, note)
             VALUE ?,?,?,?,?`,
             [booking_id, order.opened_at, order.closed_at, order.status, order.note]
@@ -10,10 +30,15 @@ const Order = {
     },
 
     update: async (updatedorder, id) => {
-        db.execute(
+        const keys = Object.keys(updatedorder);
+        const values = Object.values(updatedorder);
+
+        const setClause = keys.forEach(field => `${field}=?`).join(', ');
+
+        await db.execute(
             `UPDATE orders
-            SET ? WHERE order_id=?`,
-            [updatedorder, id]
+            SET ${setClause} WHERE order_id=?`,
+            [...values, id]
         );
     },
 
@@ -21,7 +46,7 @@ const Order = {
         const [row] = await db.execute(
             `SELECT * FROM orders`
         );
-        return row[0];
+        return row;
     },
 
     delete: async (order) => {

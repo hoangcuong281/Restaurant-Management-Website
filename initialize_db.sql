@@ -29,7 +29,7 @@ CREATE TABLE restaurant_tables (
     status ENUM('available','maintenance','hidden') DEFAULT 'available'
 );
 
-CREATE TABLE table_booking (
+CREATE TABLE bookings (
     booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quantity INT NOT NULL,
     booking_time DATETIME NOT NULL,
@@ -43,6 +43,16 @@ CREATE TABLE table_booking (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE TABLE booking_tables (
+    booking_id BIGINT NOT NULL,
+    table_id VARCHAR(10) NOT NULL,
+    PRIMARY KEY (booking_id, table_id),
+    FOREIGN KEY (booking_id) REFERENCES table_booking(booking_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (table_id) REFERENCES restaurant_tables(table_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
 CREATE TABLE orders (
     order_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     booking_id BIGINT NOT NULL,
@@ -51,7 +61,7 @@ CREATE TABLE orders (
     status ENUM('open','closed','cancelled') DEFAULT 'open',
     note TEXT,
     FOREIGN KEY (booking_id) REFERENCES table_booking(booking_id)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE 
 );
 
 CREATE TABLE meals (
@@ -105,4 +115,3 @@ CREATE INDEX idx_booking_time ON table_booking(table_id, booking_time, end_time)
 CREATE INDEX idx_order_booking ON orders(booking_id);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_payment_order ON payments(order_id);
-

@@ -46,17 +46,13 @@ export const log_in = async (req,res) => {
         {
             user_id: user.user_id, 
             role: user.role,
+            name: user.name,
         }, 
         process.env.SECRET_KEY,
         {expiresIn: '12h'}
     );
     return res.status(200).json({
         message: "Successfully logged in", 
-        token, 
-        user_id: user.user_id,
-        role: user.role,
-        name: user.name,
-        email: user.email,
-        phone: user.phone
+        token
     });
 }

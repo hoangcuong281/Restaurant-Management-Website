@@ -101,7 +101,7 @@ export const updateMeal = async (req, res) => {
 }
 
 export const deleteMeal = async (req, res) => {
-    const {id} = req.params;    
+    const {id} = req.params;  
     try {
         await Meal.delete(id);
         res.status(200).json({message: 'Deleted successfully'});
