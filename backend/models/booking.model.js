@@ -11,9 +11,17 @@ const TableBooking = {
         return bookings;
     },
 
+    findById: async (id) => {
+        const [row] = await db.execute(
+            `SELECT * FROM bookings
+            WHERE booking_id = ?`,
+            [id]
+        )
+    },
+
     create: async (booking) => {
         await db.execute(
-            `INSERT INTO booking (quantity, booking_time, end_time, special_request, table_id, user_id)
+            `INSERT INTO bookings (quantity, booking_time, end_time, special_request, table_id, user_id)
             VALUE (?,?,?,?,?,?)`,
             [booking.quantity, booking.booking_time, booking.end_time, booking.special_request, table_id, user_id]
         );
@@ -27,7 +35,7 @@ const TableBooking = {
         const setClause = keys.forEach(field => `${field}=?`).join(', ');
 
         await db.execute(
-            `UPDATE booking
+            `UPDATE bookings
             SET ${setClause} WHERE meal_id=?`,
             [...values, id]
         );
@@ -35,14 +43,14 @@ const TableBooking = {
 
     read: async() => {
         const [row] = await db.execute(
-            `SELECT * FROM booking`
+            `SELECT * FROM bookings`
         );
         return row;
     },
 
     delete: async (id) => {
         await db.execute(
-            `DELETE FROM booking WHERE booking_id = ?`,
+            `DELETE FROM bookings WHERE booking_id = ?`,
             [id]
         );
     },

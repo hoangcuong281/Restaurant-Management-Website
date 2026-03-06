@@ -49,7 +49,7 @@ export const log_in = async (req,res) => {
             name: user.name,
         }, 
         process.env.SECRET_KEY,
-        {expiresIn: '12h'}
+        {expiresIn: '1h'}
     );
     return res.status(200).json({
         message: "Successfully logged in", 

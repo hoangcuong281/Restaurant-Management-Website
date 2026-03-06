@@ -9,10 +9,10 @@ export const getAllOrder = async (req, res) => {
     }
 }
 
-export const getOrderByUser = async (req, res) => {
+export const getOrderByBooking = async (req, res) => {
     try{
-        const orderByUser = await Order.findOrderByUser(req.body['user_id']);
-        return res.status(200).json(orderByUser);
+        const orderByBooking = await Order.findOrderByBooking(req.params['id']);
+        return res.status(200).json(orderByBooking);
     }catch(error){
         return res.status(500).json({message: 'Failed to fetch user\'s orders'})
     }
@@ -34,7 +34,7 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
     const{id} = req.params;
-    const allowedFields = ['booking_time', 'end_time', 'special_request', 'table_id', 'user_id'];
+    const allowedFields = ['booking_time', 'closed_at', 'status', 'opened_at', 'booking_id'];
 
     const unknownFields = Object.keys(req.body)
         .filter(field => !allowedFields.includes(field));
@@ -45,7 +45,7 @@ export const updateOrder = async (req, res) => {
         await Order.update(req.body, id);
         return res.status(200).json({message: 'Updated successfully!'});
     } catch (error) {
-        return req.status(500).json({message: 'Failed to update!'});
+        return res.status(500).json({message: 'Failed to update!'});
     }
 }
 

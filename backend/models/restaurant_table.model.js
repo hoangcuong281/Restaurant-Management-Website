@@ -32,3 +32,5 @@ const RestaurantTable = {
     },
 
 }
+
+export default RestaurantTable;

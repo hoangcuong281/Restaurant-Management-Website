@@ -12,11 +12,11 @@ const Order = {
     },
 
 
-    findOrderByUser: async (user_id) => {
+    findOrderByBooking: async (booking_id) => {
         const [row] = await db.execute(
             `SELECT * FROM orders
-            WHERE user_id=?`,
-            [user_id]
+            WHERE booking_id=?`,
+            [booking_id]
         );
         return row;
     },
@@ -32,8 +32,7 @@ const Order = {
     update: async (updatedorder, id) => {
         const keys = Object.keys(updatedorder);
         const values = Object.values(updatedorder);
-
-        const setClause = keys.forEach(field => `${field}=?`).join(', ');
+        const setClause = keys.map(field => `${field}=?`).join(', ');
 
         await db.execute(
             `UPDATE orders

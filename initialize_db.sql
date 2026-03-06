@@ -45,9 +45,9 @@ CREATE TABLE bookings (
 
 CREATE TABLE booking_tables (
     booking_id BIGINT NOT NULL,
-    table_id VARCHAR(10) NOT NULL,
+    table_id BIGINT NOT NULL,
     PRIMARY KEY (booking_id, table_id),
-    FOREIGN KEY (booking_id) REFERENCES table_booking(booking_id)
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (table_id) REFERENCES restaurant_tables(table_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
@@ -60,7 +60,7 @@ CREATE TABLE orders (
     closed_at DATETIME,
     status ENUM('open','closed','cancelled') DEFAULT 'open',
     note TEXT,
-    FOREIGN KEY (booking_id) REFERENCES table_booking(booking_id)
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
         ON DELETE CASCADE ON UPDATE CASCADE 
 );
 
@@ -107,11 +107,11 @@ CREATE TABLE ratings (
     booking_id BIGINT UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (booking_id) REFERENCES table_booking(booking_id)
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX idx_booking_time ON table_booking(table_id, booking_time, end_time);
+CREATE INDEX idx_booking_time ON bookings(table_id, booking_time, end_time);
 CREATE INDEX idx_order_booking ON orders(booking_id);
 CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_payment_order ON payments(order_id);

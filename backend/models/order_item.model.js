@@ -1,19 +1,41 @@
 import db from '../config/db.js'
 
 const OrderItem = {
-    create: async (order_item, meal_id, order_id) => {
-        db.execute(
-            `INSERT INTO order_items (order_id, meal_id, quantity, price_at_time, note)
-            VALUE ?,?,?,?,?`,
-            [order_id, meal_id, order_item.quantity, order_item.price_at_time, order_item.note]
+
+    findByOrder: async (order_id) => {
+        const [row] = await db.execute(
+            `SELECT * FROM order_items
+            WHERE order_id=?`,
+            [order_id]
         );
+        return row;
     },
 
-    update: async (updatedOrderItem, id) => {
+    create: async (meal_id, order_id, quantity, note) => {
+        try {
+            const price_at_time = await db.execute(
+                `SELECT price FROM meals WHERE meal_id=?`,
+                [meal_id]
+            );
+            db.execute(
+                `INSERT INTO order_items (order_id, meal_id, quantity, price_at_time, note)
+                VALUES (?,?,?,?,?)`,
+                [order_id, meal_id, quantity, price_at_time[0][0].price, note]
+            );
+        } catch (error) {
+            console.error("Error occurred while fetching meal price:", error);
+        }
+    },
+
+    update: async (updatedOrderItem, order_id, meal_id) => {
+        const keys = Object.keys(updatedOrderItem);
+        const values = Object.values(updatedOrderItem);
+        const setClause = keys.map(field => `${field}=?`).join(', ');
+
         db.execute(
             `UPDATE order_items
-            SET ? WHERE order_item_id=?`,
-            [updatedOrderItem, id]
+            SET ${setClause} WHERE order_id=? AND meal_id=?`,
+            [...values, order_id, meal_id]
         );
     },
 
@@ -21,13 +43,13 @@ const OrderItem = {
         const [row] = await db.execute(
             `SELECT * FROM order_items`
         );
-        return row[0];
+        return row;
     },
 
-    delete: async (order_item) => {
+    delete: async (meal_id, order_id) => {
         db.execute(
-            `DELETE FROM order_items WHERE order_item_id = ?`,
-            [order_item.order_item_id]
+            `DELETE FROM order_items WHERE meal_id = ? AND order_id = ?`,
+            [meal_id, order_id]
         );
     },
 
