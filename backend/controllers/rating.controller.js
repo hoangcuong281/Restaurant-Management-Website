@@ -1,44 +1,35 @@
 import Rating from '../models/rating.model.js';
 
 export const createRating = async (req, res) => {
-    const { email, star, feedback ='' } = req.body;
-
-    // Kiểm tra dữ liệu đầu vào
-    if (!email || !star) {
-        return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ thông tin.' });
-    }
+    const { star, comment=null, booking_id } = req.body;
+    const user_id = req.user.user_id;
+    const email = req.user.email;
+    if (!email || !star || !booking_id) return res.status(400).json({message: 'All fields are required!'});
 
     try {
-        const newRating = new Rating({ email, star, feedback });
-        await newRating.save();
-        res.status(201).json(newRating);
+        await Rating.create(email, star, comment, user_id, booking_id);
+        res.status(201).json({ message: 'Rating created successfully!' });
     } catch (error) {
         console.error('Error creating rating:', error);
-        res.status(500).json({ message: 'Lỗi khi tạo đánh giá.' });
+        res.status(500).json({ message: 'Error creating rating.' });
     }
 }
 
 export const getRatings = async (req, res) => {
     try {
-        const ratings = await Rating.find();
+        const ratings = await Rating.read();
         res.status(200).json(ratings);
     } catch (error) {
-        console.error('Error fetching ratings:', error);
-        res.status(500).json({ message: 'Lỗi khi lấy danh sách đánh giá.' });
+        res.status(500).json({ message: 'Error fetching ratings', error: error.message });
     }
 }
 
 export const deleteRating = async (req, res) => {
     const { id } = req.params;
-
     try {
-        const deletedRating = await Rating.findByIdAndDelete(id);
-        if (!deletedRating) {
-            return res.status(404).json({ message: 'Đánh giá không tồn tại.' });
-        }
-        res.status(200).json({ message: 'Đánh giá đã được xóa thành công.' });
+        await Rating.delete(id);
+        res.status(200).json({ message: 'Rating deleted successfully!' });
     } catch (error) {
-        console.error('Error deleting rating:', error);
-        res.status(500).json({ message: 'Lỗi khi xóa đánh giá.' });
+        res.status(500).json({ message: 'Error deleting rating', error: error.message });
     }
 }

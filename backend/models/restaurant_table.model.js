@@ -1,19 +1,25 @@
 import db from '../config/db.js';
 
 const RestaurantTable = {
-    create: async (table) => {
+    create: async (quantity, location, table_number, status) => {
         db.execute(
-            `INSERT INTO restaurant_tables (quantity, location, table_number, status)
-            VALUE (?,?,?,?)`,
-            [table.quantity, table.location, table.table_number, table.status]
+            `INSERT INTO restaurant_tables (quantity, location, table_number)
+            VALUE (?,?,?)`,
+            [quantity, location, table_number]
         )
     },
     
     update: async (updatedTable, id) => {
+        const fields = Object.keys(updatedTable);
+        const values = Object.values(updatedTable);
+
+        const setClause = fields.map(field => `${field}=?`).join(", ");
+
+
         db.execute(
             `UPDATE restaurant_tables
-            SET ? WHERE table_id=?`,
-            [updatedTable, id]
+            SET ${setClause} WHERE table_id=?`,
+            [...values, id]
         );
     },
 
@@ -24,10 +30,10 @@ const RestaurantTable = {
         return row[0];
     },
 
-    delete: async (table) => {
+    delete: async (table_id) => {
         db.execute(
             `DELETE FROM restaurant_tables WHERE table_id = ?`,
-            [table.table_id]
+            [table_id]
         );
     },
 

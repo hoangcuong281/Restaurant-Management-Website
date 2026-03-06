@@ -47,6 +47,7 @@ export const log_in = async (req,res) => {
             user_id: user.user_id, 
             role: user.role,
             name: user.name,
+            email: user.email
         }, 
         process.env.SECRET_KEY,
         {expiresIn: '1h'}

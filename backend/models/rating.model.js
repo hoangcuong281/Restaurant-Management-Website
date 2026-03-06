@@ -1,10 +1,11 @@
 import db from '../config/db.js'
 
 const Rating = {
-    create: async (rating, user_id, booking_id) => {
+    create: async (email, star, comment, user_id, booking_id) => {
         db.execute(
-            `INSERT INTO ratings VALUE ?,?,?,?,?`,
-            [rating.email, rating.star, rating.comment, user_id, booking_id]
+            `INSERT INTO ratings (email, star, comment, user_id, booking_id)
+            VALUES (?,?,?,?,?)`,
+            [email, star, comment, user_id, booking_id]
         );
     },
 
@@ -15,10 +16,10 @@ const Rating = {
         return row[0];
     },
 
-    delete: async (rating) => {
+    delete: async (booking_id) => {
         db.execute(
-            `DELETE FROM ratings WHERE rating_id = ?`,
-            [rating.rating_id]
+            `DELETE FROM ratings WHERE booking_id = ?`,
+            [booking_id]
         );
     },
 

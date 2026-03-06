@@ -1,10 +1,11 @@
 import express from "express";
-import { createPaymentUrl, checkPayment } from "../controllers/payment.controller.js";
+import { createPayment, getPayments, updatePayment } from "../controllers/payment.controller.js";
 
+import verify_token from "../middleware/token_action.js";
 const router = express.Router();
 
-router.get("/create_payment_url", createPaymentUrl);
-
-router.get("/checkpayment", checkPayment);
+router.post('/create/', verify_token, createPayment);
+router.get('/', verify_token, getPayments);
+router.put('/update/:payment_id', verify_token, updatePayment);
 
 export default router;
