@@ -1,8 +1,7 @@
 .footer{
-    /* margin-top: 200px; */
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Sửa lại dòng này */
+    align-items: flex-start;
     height: 200px;
     background-color: var(--Aka);
     color: var(--Shiro);
@@ -109,7 +108,7 @@
     color: var(--Kuro);
 }
 
-input {
+.footer input {
     width: 150px;
     background: none;
     border: none;
@@ -120,7 +119,7 @@ input {
     padding: 5px 10px;
     margin-right: 10px;
 }
-input::placeholder {
+.footer input::placeholder {
     color: rgba(255, 255, 255, 0.6); /* Light red placeholder */
 }
 
