@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import * as authService from '@/services/authService'
+import { login } from '@/services/authService'
 import Header from  '@/components/NavBar/navBar.jsx'
 
 function Login() {
@@ -29,8 +29,8 @@ function Login() {
         if (v) return setError(v);
         try {
             setLoading(true)
-            const { token } = await authService.login(form.email, form.password);
-            authService.setToken(token);
+            const { token } = await login(form.email, form.password);
+            localStorage.setItem('token', token);
             navigate('/');
         } catch (err) {
             setError(err.message || 'Login failed');

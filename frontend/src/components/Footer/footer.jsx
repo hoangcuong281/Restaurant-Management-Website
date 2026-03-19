@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styles from './footer.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 import { faTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -40,55 +39,32 @@ function Footer(){
     };
     
     return(
-        <footer className={styles.footer}>
-            <div className={styles.footerLeft}>
-                <div className={styles.leftNavLink}>
-                    <div className={styles.aboutus}>VỀ CHÚNG TÔI</div>
-                    <a href='/team' className={styles.footerLeftContent}>ĐỘI NGŨ</a>
-                    <a href='/event' className={styles.footerLeftContent}>SỰ KIỆN</a>
-                    <a href='/contact' className={styles.footerLeftContent}>LIÊN HỆ</a>
+        <footer className="w-full bg-[var(--Aka)] text-[var(--Shiro)] px-6 py-8 md:py-12">
+            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-stretch justify-between gap-8">
+
+                <div className="w-full md:w-1/3 flex flex-col gap-4 items-center">
+                    <div className="text-xl font-extrabold">ABOUT US</div>
+                    <nav className="flex flex-col gap-2 font-bold">
+                        <a href="/team" className="text-[var(--Shiro)] hover:text-[var(--Kuro)]">ĐỘI NGŨ</a>
+                        <a href="/event" className="text-[var(--Shiro)] hover:text-[var(--Kuro)]">SỰ KIỆN</a>
+                        <a href="/contact" className="text-[var(--Shiro)] hover:text-[var(--Kuro)]">LIÊN HỆ</a>
+                    </nav>
                 </div>
-                <a href='/rating' className={styles.rating}>ĐÁNH GIÁ TRẢI NGHIỆM CỦA BẠN TẠI TOKYO BITES</a>
-            </div>
-            <div className={styles.footerCenter}>
-                <a href="/home" className={`${styles.footerLogo} ${styles.logo}`}>TOKYO BITES</a>
-                <div className={styles.footerIcon}>
-                    <FontAwesomeIcon icon={faFacebook} />
-                    <FontAwesomeIcon icon={faInstagram} />
-                    <FontAwesomeIcon icon={faTwitter} />
-                    <FontAwesomeIcon icon={faYoutube} />
+
+                <div className="w-full md:w-1/3 flex flex-col items-center text-center gap-4">
+                    <a href="/home" className="text-2xl md:text-3xl" style={{fontFamily: 'Gasoek One, sans-serif'}}>TOKYO BITES</a>
+                    <div className="flex gap-4 text-xl text-[var(--Shiro)]">
+                        <FontAwesomeIcon icon={faFacebook} />
+                        <FontAwesomeIcon icon={faInstagram} />
+                        <FontAwesomeIcon icon={faTwitter} />
+                        <FontAwesomeIcon icon={faYoutube} />
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 mt-2">
+                        <a href="/privacy" className="hover:text-[var(--Kuro)]">Chính sách bảo mật</a>
+                        <a href="/terms-conditions" className="hover:text-[var(--Kuro)]">Điều khoản sử dụng</a>
+                    </div>
                 </div>
-                <div className={styles.leftPolicy}>
-                    <a href='/privacy' className={styles.footerLeftContent}>Chính sách bảo mật</a>
-                    <a href='/terms-conditions' className={styles.footerLeftContent}>Điều khoản sử dụng</a>
-                </div>
-            </div>
-            <div className={styles.footerRight}>
-                <p className={`${styles.signUp} ${styles.footerContent}`}>Đăng ký nhận thông tin ưu đãi: </p>
-                <form onSubmit={handleSubmit} className={styles.inputContainer}>
-                    <input 
-                        type="text" 
-                        name="email" 
-                        placeholder="Email"
-                        value={emailInput}
-                        onChange={e => {
-                            setEmailInput(e.target.value);
-                            if (errorMesg) setErrorMesg('');
-                        }}
-                    />
-                    <button 
-                        type="submit" 
-                        className={styles.registerButton}
-                    >
-                        Đăng ký
-                    </button>
-                </form>
-                {successMesg && (
-                    <div className={styles.successMesg}>{successMesg}</div>
-                )}
-                {errorMesg && (
-                    <div className={styles.successMesg}>{errorMesg}</div>
-                )}
+
             </div>
         </footer>
     );

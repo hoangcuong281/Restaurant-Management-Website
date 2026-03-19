@@ -1,4 +1,3 @@
-import e from "express";
 import RestaurantTable from "../models/restaurant_table.model.js";
 
 export const createTable = async (req, res) => {

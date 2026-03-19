@@ -1,23 +1,24 @@
-import styles from './sidebar.module.css';
+import { Swiper, SwiperSlide } from "swiper/react";
 
 function Sidebar({ selectedCategory, onCategoryChange }){
     const handleCategoryClick = (category) => {
         onCategoryChange(category);
     };
     return(
-        <div className={styles.sidebar}>
-            <ul className={styles.mealsList}>
-                <li className={`${selectedCategory === 'all' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('all')} data-category="all" id="all">Tất cả</li>
-                <li className={`${selectedCategory === 'appetizers' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('appetizers')} data-category="appetizers" id="appetizers">Khai vị</li>
-                <li className={`${selectedCategory === 'maki' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('maki')} data-category="maki" id="maki">Maki</li>
-                <li className={`${selectedCategory === 'sushi' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('sushi')} data-category="sushi" id="sushi">Sushi</li>
-                <li className={`${selectedCategory === 'sashimi' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('sashimi')} data-category="sashimi" id="sashimi">Sashimi</li>
-                <li className={`${selectedCategory === 'ramen' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('ramen')} data-category="ramen" id="ramen">Ramen</li>
-                <li className={`${selectedCategory === 'rice' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('rice')} data-category="rice" id="rice">Cơm</li>
-                <li className={`${selectedCategory === 'dessert' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('dessert')} data-category="dessert" id="dessert">Tráng miệng</li>
-                <li className={`${selectedCategory === 'drinks' ? styles.selected : ''} ${styles.menuSelection}`} onClick={() => handleCategoryClick('drinks')} data-category="drinks" id="drinks">Đồ uống</li>
+        <div className="hidden xl:flex justify-center items-center bg-[var(--Kuro)] p-8 border-2 border-[var(--Kuro)] rounded-2xl mt-2">
+            <ul className="flex flex-col list-none font-[var(--font-heading)] font-bold text-[var(--Midori)] gap-6 text-2xl">
+                <li className={`${selectedCategory === 'all' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('all')} data-category="all" id="all">All</li>
+                <li className={`${selectedCategory === 'appetizers' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('appetizers')} data-category="appetizers" id="appetizers">Appetizers</li>
+                <li className={`${selectedCategory === 'maki' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('maki')} data-category="maki" id="maki">Maki</li>
+                <li className={`${selectedCategory === 'sushi' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('sushi')} data-category="sushi" id="sushi">Sushi</li>
+                <li className={`${selectedCategory === 'sashimi' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('sashimi')} data-category="sashimi" id="sashimi">Sashimi</li>
+                <li className={`${selectedCategory === 'ramen' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('ramen')} data-category="ramen" id="ramen">Ramen</li>
+                <li className={`${selectedCategory === 'rice' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('rice')} data-category="rice" id="rice">Rice</li>
+                <li className={`${selectedCategory === 'dessert' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('dessert')} data-category="dessert" id="dessert">Dessert</li>
+                <li className={`${selectedCategory === 'drinks' ? 'text-[var(--Shiro)]' : 'text-[var(--Midori)]'} cursor-pointer`} onClick={() => handleCategoryClick('drinks')} data-category="drinks" id="drinks">Drinks</li>
             </ul>
         </div>
+
     );
 }
 

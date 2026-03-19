@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/menu/', getMenu);
 router.get('/:id', getMealById);
-router.post('/cre_meal/', createMeal);
+router.post('/create_meal/', createMeal);
 router.put('/upd_meal/:id', updateMeal);
 router.delete('/del_meal/:id', deleteMeal);
 

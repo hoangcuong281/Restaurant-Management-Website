@@ -1,4 +1,5 @@
 import TableBooking from '../models/booking.model.js'
+import RestaurantTable from '../models/restaurant_table.model.js';
 
 export const getAllBooking = async (req, res) => {
     try{
@@ -20,12 +21,12 @@ export const getBookingByUser = async (req, res) => {
 }
 
 export const createBooking = async (req, res) => {
-    const { quantity, booking_time, end_time, special_request = null, table_id, user_id } = req.body;
-    if (quantity == null || !booking_time || !end_time || !table_id || !user_id) {
+    const { quantity, booking_time, end_time = null, special_request = null, table_id, user_id } = req.body;
+    if (!quantity || !booking_time || !table_id || !user_id) {
         return res.status(400).json({message: 'Required fields are missing!'});
     }
 
-    const newBooking = { quantity, booking_time, end_time, special_request, table_id, user_id };
+    const newBooking = { quantity, booking_time, end_time: end_time || null, special_request: special_request || null, table_id, user_id };
 
     try {
         await TableBooking.create(newBooking);
@@ -61,4 +62,12 @@ export const deleteBooking = async (req, res) => {
     } catch (error) {
         return res.status(500).json({message: 'Failed to delete!'});
     }
+}
+
+export const checkTableAvailable = async (req, res) => {
+    // if qty < 6  : check for 1 table 
+    // else qty > 6 < 12: check for 2 tables but close to each other
+    const available = await RestaurantTable.findAvailable();
+    if(available) return res.status(200).json(available);
+    return res.status(500).json({message: 'No table is available'});
 }

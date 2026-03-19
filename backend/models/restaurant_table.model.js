@@ -1,6 +1,13 @@
 import db from '../config/db.js';
 
 const RestaurantTable = {
+    findAvailable: async () => {
+        const [row] = await db.execute(
+            `SELECT * FROM restaurant_tables WHERE status=?`,
+            ['available']
+        )
+        return row;
+    },
     create: async (quantity, location, table_number, status) => {
         db.execute(
             `INSERT INTO restaurant_tables (quantity, location, table_number)

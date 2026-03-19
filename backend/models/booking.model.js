@@ -20,10 +20,11 @@ const TableBooking = {
     },
 
     create: async (booking) => {
+        console.log(booking)
         await db.execute(
             `INSERT INTO bookings (quantity, booking_time, end_time, special_request, table_id, user_id)
-            VALUE (?,?,?,?,?,?)`,
-            [booking.quantity, booking.booking_time, booking.end_time, booking.special_request, table_id, user_id]
+            VALUES (?,?,?,?,?,?)`,
+            [booking.quantity, booking.booking_time, booking.end_time, booking.special_request, booking.table_id, booking.user_id]
         );
     },
 

@@ -1,21 +1,10 @@
-import styles from './tablebooking.module.css'
-import Footer from '../../components/Footer/footer'
+import Footer from '@/components/Footer/footer'
 import { useState, useEffect } from 'react';
+import { jwtDecode } from "jwt-decode";
 
 function TableBooking(){
     const [validationErrors, setValidationErrors] = useState({});
-    const [tablesType, setTablesType] = useState([]);
-    const [availableTables, setAvailableTables] = useState({});
-    
-    useEffect(() => {
-        const fetchTablesType = async () => {
-            const response = await fetch('http://localhost:3000/api/table/config');
-            const data = await response.json();
-            setTablesType(data);
-        }
-        fetchTablesType();
-    }, []);
-
+    const [user, setUser] = useState(null);
 
     const [tables, setTables] = useState({
         quantity: '',
@@ -24,14 +13,8 @@ function TableBooking(){
         name: '',
         phone: '',
         email: '',
-        occasion: '',
-        specialRequest: '',
-        tableType: '',
-        tablePrice: '',
-        depositStatus: '',
-        bill: 0,
-        tableID: '',
-        status: 'pending'
+        special_request: '',
+        tableID: ''
     });
 
     const isValidEmail = (email) => {
@@ -42,13 +25,6 @@ function TableBooking(){
     const isValidPhone = (phone) => {
         const phoneRegex = /^(0[0-9]{9})$/;
         return phoneRegex.test(phone);
-    };
-
-    const calculatePriceMultiplier = (quantity) => {
-        if (quantity <= 10) return 1;
-        if (quantity <= 20) return 2;
-        if (quantity <= 30) return 3;
-        return 4;
     };
 
     const isWithinBusinessHours = (time) => {
@@ -89,30 +65,18 @@ function TableBooking(){
             if (quantity <= 0) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    quantity: 'Số lượng phải lớn hơn 0'
+                    quantity: 'At least 1 person'
                 }));
-            } else if (quantity > 40) {
+            } else if (quantity > 12) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    quantity: 'Số lượng không được vượt quá 40 người'
+                    quantity: 'Please contact the hotline for booking over 12 people. Hotline 19001900'
                 }));
             } else {
                 setValidationErrors(prev => ({
                     ...prev,
                     quantity: ''
                 }));
-                
-                if (tables.tableType) {
-                    const selectedTable = tablesType.find(t => t.tableID === tables.tableType);
-                    const multiplier = calculatePriceMultiplier(quantity);
-                    const newPrice = selectedTable.tablePrice * multiplier;
-                    setTables(prev => ({
-                        ...prev,
-                        quantity: value,
-                        tablePrice: newPrice
-                    }));
-                    return;
-                }
             }
         }
 
@@ -126,7 +90,7 @@ function TableBooking(){
             if (numbersOnly.length > 0 && !isValidPhone(numbersOnly)) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    phone: 'Vui lòng nhập đúng định dạng SĐT với 10 chữ số và bắt đầu bằng số 0'
+                    phone: 'Please enter a valid phone number'
                 }));
             } else {
                 setValidationErrors(prev => ({
@@ -147,7 +111,7 @@ function TableBooking(){
             ) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    time: 'Không thể chọn giờ trong quá khứ!'
+                    time: 'Invalid time'
                 }));
                 return;
             }
@@ -155,7 +119,7 @@ function TableBooking(){
             if (!isWithinBusinessHours(selectedTime)) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    time: 'Vui lòng chọn trong khung giờ 9:00 AM - 2:00 PM hoặc 6:00 PM - 11:00 PM'
+                    time: 'Please choose the validable time'
                 }));
                 return;
             } else {
@@ -188,148 +152,107 @@ function TableBooking(){
             if (!isValidEmail(value)) {
                 setValidationErrors(prev => ({
                     ...prev,
-                    email: 'Vui lòng nhập địa chỉ email hợp lệ (ví dụ: example@domain.com)'
+                    email: 'Please enter a valid email address'
                 }));
             }
         }
     };
 
-    const handlePayment = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const errors = {};
-        if (!tables.name.trim()) errors.name = 'Tên là bắt buộc';
+        if (!tables.name.trim()) errors.name = 'Name is required';
         if (!tables.phone.trim()) {
-            errors.phone = 'Số điện thoại là bắt buộc';
+            errors.phone = 'Phone number is required';
         } else if (!isValidPhone(tables.phone)) {
-            errors.phone = 'Vui lòng nhập số điện thoại hợp lệ gồm 10 chữ số và bắt đầu bằng số 0';
+            errors.phone = 'Please enter valid phone number';
         }
-        if (!tables.email.trim()) errors.email = 'Email là bắt buộc';
-        if (!tables.date.trim()) errors.date = 'Ngày là bắt buộc';
+        if (!tables.email.trim()) errors.email = 'Email is required';
+        if (!tables.date.trim()) errors.date = 'Date is required';
         if (!tables.time.trim()) {
-            errors.time = 'Thời gian là bắt buộc';
+            errors.time = 'Time is required';
         } else if (!isWithinBusinessHours(tables.time)) {
-            errors.time = 'Vui lòng chọn thời gian giữa 9:00 AM - 2:00 PM hoặc 6:00 PM - 11:00 PM';
+            errors.time = 'Please choose a valid time between 9:00 AM - 2:00 PM hoặc 6:00 PM - 11:00 PM';
         }
-        if (!tables.quantity.trim()) errors.quantity = 'Số lượng là bắt buộc';
-        if (!tables.tableType.trim()) errors.tableType = 'Vui lòng chọn loại bàn';
-        if (!isValidEmail(tables.email)) {
-            errors.email = 'Vui lòng nhập địa chỉ email hợp lệ (ví dụ: example@domain.com)';
-        }
-        if (tables.tableType && tables.quantity) {
-            // eslint-disable-next-line no-unused-vars
-            const selectedTable = tablesType.find(t => t.tableID === tables.tableType);
-            const shift = isWithinBusinessHours(tables.time)
-                ? (parseInt(tables.time.split(':')[0], 10) < 15 ? 'lunch' : 'dinner')
-                : null;
-            if (shift && availableTables[tables.tableType]) {
-                const availableQty = availableTables[tables.tableType][shift];
-                const tablesNeeded = Math.ceil(parseInt(tables.quantity) / 10);
-                if (availableQty < tablesNeeded) {
-                    errors.tableType = 'Không đủ bàn trống cho số lượng người bạn chọn!';
-                }
-            }
-        }
-
-        if (Object.keys(errors).length > 0) {
-            setValidationErrors(errors);
-            return;
-        }
-        try {
-            const response = await fetch('http://localhost:3000/api/payment/create_payment_url?amount=' + tables.tablePrice, {
+        if (!tables.quantity.trim()) errors.quantity = 'Quantity is required';
+        if (tables.quantity) {
+            const available_tables = await fetch('http://localhost:3000/api/booking/check-available', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 },
             });
-            const data = await response.json();
-            tables.tableID = data.TxnRef;
-            tables.depositStatus = 'pending';
-            await fetch('http://localhost:3000/api/table/', {
+            const data = await available_tables.json();
+            const avaiID = data[0].table_id;
+
+            const booking = {
+                quantity: tables.quantity,
+                name: tables.name,
+                email: tables.email,
+                booking_time: tables.date + ' ' + tables.time,
+                booking_end: null,
+                table_id: avaiID,
+                user_id: user.user_id
+            }
+            const token = localStorage.getItem("token");
+            const response = await fetch('http://localhost:3000/api/booking/create/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+                headers:{
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(tables)
+                body: JSON.stringify(booking)
             });
-            window.location.href = data.paymentUrl;
-        } catch (error) {
-            console.error('Error:', error);
+            console.log(booking);
+            console.log(response.json());
+        }
+        if (Object.keys(errors).length > 0) {
+            setValidationErrors(errors);
+            return;
         }
     }
 
-    const fetchAvailableTables = async (date, tableType) => {
-        try {
-            const lunchResponse = await fetch(`http://localhost:3000/api/table/avail/${date}/12:00`);
-            const lunchData = await lunchResponse.json();
-            const lunchAvailable = lunchData.find(table => table.tableID === tableType)?.tableQty || 0;
-            
-            const dinnerResponse = await fetch(`http://localhost:3000/api/table/avail/${date}/18:00`);
-            const dinnerData = await dinnerResponse.json();
-            const dinnerAvailable = dinnerData.find(table => table.tableID === tableType)?.tableQty || 0;
-
-            setAvailableTables(prev => ({
-                ...prev,
-                [tableType]: {
-                    lunch: lunchAvailable,
-                    dinner: dinnerAvailable
-                }
-            }));
-        } catch (error) {
-            console.error('Error fetching available tables:', error);
-        }
-    };
-
     useEffect(() => {
-        if (tables.date) {
-            tablesType.forEach(table => {
-                fetchAvailableTables(tables.date, table.tableID);
-            });
+        const token = localStorage.getItem("token");
+        if (token) {
+            const decoded = jwtDecode(token);
+            setUser(decoded);
+
+            setTables(prev => ({
+                ...prev,
+                name: decoded.name || '',
+                email: decoded.email || ''
+            }));
         }
-    }, [tables.date, tablesType]);
+    }, []);
 
-    const isTableAvailable = (table, shift) => {
-        if (!tables.quantity || !availableTables[table.tableID]) return true;
-        
-        const availableQty = availableTables[table.tableID][shift];
-        const tablesNeeded = Math.ceil(parseInt(tables.quantity) / 10);
-        return availableQty >= tablesNeeded;
-    };
-
-    return(
+    return (
         <>
-            <div className={styles.bookingContainer}>
-                <a href='/home' className={styles.mainTitle}>TOKYO BITES</a>
-                <div className={styles.bookingContentContainer}>
-                    <p className={styles.title}>Bạn đã sẵn sàng cho một bữa ăn ngon tại Tokyo Bites?</p>
-                    <div className={styles.bookingForm}>
-                        <form onSubmit={handlePayment}>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Số lượng người</label>
-                                    <input 
-                                        type="number" 
-                                        name="quantity" 
-                                        value={tables.quantity}
-                                        onChange={handleInputChange}
-                                        min="1"
-                                        max="40"
-                                        placeholder="10 peple / table"
-                                        className={`${styles.input} ${validationErrors.quantity ? styles.inputError : ''}`}
-                                    />
-                                    {validationErrors.quantity && 
-                                        <span className={styles.errorMessage}>{validationErrors.quantity}</span>
-                                    }
-                                    {tables.quantity > 0 && tables.quantity <= 40 && (
-                                        <span className={styles.infoMessage}>
-                                            {tables.quantity <= 10 ? 
-                                                "Giá tiêu chuẩn cho 1 bàn 10 người" : 
-                                                `${calculatePriceMultiplier(tables.quantity)}x giá tiêu chuẩn cho ${tables.quantity} người`
-                                            }
-                                        </span>
-                                    )}
-                                </div>
-                                <div className={styles.formGroup}>
-                                    <label>Giờ</label>
+            <div className="flex flex-col items-center w-full py-4 bg-[var(--Midori)]">
+                <a href='/home' className="no-underline text-center text-5xl font-thin mb-10 md:mb-20 text-[var(--Aka)]" style={{fontFamily: 'Gasoek One, sans-serif'}}>TOKYO BITES</a>
+                <div className="flex flex-col items-center md:border-[20px] border-[var(--Kuro)] md:rounded-[40px] md:w-1/2 w-full p-8 bg-[rgb(237,234,236)]">
+                    <p className="text-2xl font-thin mb-6" style={{fontFamily: 'Oswald, sans-serif', color: 'var(--Aka)'}}>Are you ready for a dinner at Tokyo Bites?</p>
+                    <div className="w-full md:w-4/5">
+                        <form onSubmit={handleSubmit}>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap justify-between">
+                                <label className="block mb-1 font-bold">Quantity</label>
+                                <input 
+                                    type="number" 
+                                    name="quantity" 
+                                    value={tables.quantity}
+                                    onChange={handleInputChange}
+                                    min="1"
+                                    max="40"
+                                    placeholder="10 people / table"
+                                    className={`text-[var(--Kuro)] border rounded-lg h-10 w-full px-2 transition-colors bg-[var(--Shiro)] ${validationErrors.quantity ? 'border-red-500' : 'border-[var(--Kuro)]'}`}
+                                />
+                                {validationErrors.quantity && 
+                                    <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.quantity}</span>
+                                }
+                            </div>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap justify-between">
+                                <div className="w-full xl:w-2/5">
+                                    <label className="block mb-1 font-bold">Time</label>
                                     <input 
                                         type="time" 
                                         name="time" 
@@ -337,191 +260,80 @@ function TableBooking(){
                                         onChange={handleInputChange}
                                         min="09:00"
                                         max="23:00"
-                                        step="1800"
-                                        className={validationErrors.time ? styles.inputError : ''}
+                                        className={`${validationErrors.time ? 'border-red-500' : 'border-[var(--Kuro)]'} w-full rounded-lg h-10 px-2 border bg-[var(--Shiro)]`}
                                     />
                                     {validationErrors.time && 
-                                        <span className={styles.errorMessage}>{validationErrors.time}</span>
+                                        <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.time}</span>
                                     }
-                                    <span className={styles.infoMessage}>
-                                        Giờ mở cửa: 9:00 AM - 2:00 PM, 6:00 PM - 11:00 PM
-                                    </span>
+                                    <span className="text-gray-600 text-sm mt-1 block">Open time: 9:00 AM - 2:00 PM, 6:00 PM - 11:00 PM</span>
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label>Ngày</label>
+                                <div className="w-full xl:w-2/5">
+                                    <label className="block mb-1 font-bold">Date</label>
                                     <input 
                                         type="date" 
                                         name="date" 
                                         value={tables.date}
                                         onChange={handleInputChange}
                                         min={new Date().toISOString().split('T')[0]}
-                                        className={validationErrors.date ? styles.inputError : ''}
+                                        className={`${validationErrors.date ? 'border-red-500' : 'border-[var(--Kuro)]'} w-full rounded-lg h-10 px-2 border bg-[var(--Shiro)]`}
                                     />
-                                    {validationErrors.date && <span className={styles.errorMessage}>{validationErrors.date}</span>}
+                                    {validationErrors.date && <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.date}</span>}
                                 </div>
                             </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Tên</label>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap">
+                                <div className="w-full mb-4">
+                                    <label className="block mb-1 font-bold">Name</label>
                                     <input 
                                         type="text" 
                                         name="name" 
                                         value={tables.name}
                                         onChange={handleInputChange}
-                                        className={validationErrors.name ? styles.inputError : ''}
+                                        className={`${validationErrors.name ? 'border-red-500' : 'border-[var(--Kuro)]'} w-full rounded-lg h-10 px-2 border bg-[var(--Shiro)]`}
                                     />
-                                    {validationErrors.name && <span className={styles.errorMessage}>{validationErrors.name}</span>}
+                                    {validationErrors.name && <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.name}</span>}
                                 </div>
                             </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Số điện thoại</label>
-                                    <input 
-                                        type="tel"
-                                        name="phone"
-                                        value={tables.phone}
-                                        onChange={handleInputChange}
-                                        maxLength="10"
-                                        className={`${styles.input} ${validationErrors.phone ? styles.inputError : ''}`}
-                                        pattern="[0-9]*"  
-                                    />
-                                    {validationErrors.phone && (
-                                        <span className={styles.errorMessage}>
-                                            {validationErrors.phone}
-                                        </span>
-                                    )}
-                                </div>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap">
+                                <label className="block mb-1 font-bold">Phone number</label>
+                                <input 
+                                    type="tel"
+                                    name="phone"
+                                    value={tables.phone}
+                                    onChange={handleInputChange}
+                                    maxLength="10"
+                                    className={`text-[var(--Kuro)] border rounded-lg h-10 w-full px-2 transition-colors bg-[var(--Shiro)] ${validationErrors.phone ? 'border-red-500' : 'border-[var(--Kuro)]'}`}
+                                    pattern="[0-9]*"  
+                                />
+                                {validationErrors.phone && (
+                                    <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.phone}</span>
+                                )}
                             </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Email</label>
-                                    <input 
-                                        type="email" 
-                                        name="email" 
-                                        value={tables.email}
-                                        onChange={handleInputChange}
-                                        className={`${styles.input} ${validationErrors.email ? styles.inputError : ''}`}
-                                    />
-                                    {validationErrors.email && (
-                                        <span className={styles.errorMessage}>
-                                            {validationErrors.email}
-                                        </span>
-                                    )}
-                                </div>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap">
+                                <label className="block mb-1 font-bold">Email</label>
+                                <input 
+                                    type="email" 
+                                    name="email" 
+                                    value={tables.email}
+                                    onChange={handleInputChange}
+                                    className={`text-[var(--Kuro)] border rounded-lg h-10 w-full px-2 transition-colors bg-[var(--Shiro)] ${validationErrors.email ? 'border-red-500' : 'border-[var(--Kuro)]'}`}
+                                />
+                                {validationErrors.email && (
+                                    <span className="text-red-500 text-sm font-bold mt-1 block">{validationErrors.email}</span>
+                                )}
                             </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Dịp đặc biệt: (Không bắt buộc)</label>
+                            <div className="flex flex-row gap-4 mb-3 w-full flex-wrap">
+                                <div className="w-full mb-4">
+                                    <label className="block mb-1 font-bold">Special Request (Optional)</label>
                                     <input 
                                         type="text" 
-                                        name="occasion" 
-                                        value={tables.occasion}
+                                        name="special_request" 
+                                        value={tables.special_request}
                                         onChange={handleInputChange}
+                                        className="w-full rounded-lg h-10 px-2 border border-[var(--Kuro)] bg-[var(--Shiro)]"
                                     />
                                 </div>
                             </div>
-                            <div className={styles.formRow}>
-                                <div className={styles.formGroup}>
-                                    <label>Yêu cầu đặc biệt: (Không đặc biệt)</label>
-                                    <input 
-                                        type="text" 
-                                        name="specialRequest" 
-                                        value={tables.specialRequest}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                            </div>
-                            <div className={styles.table}>
-                                <div className={styles.tableInner}>
-                                    <label className={styles.tableLabel}>Loại bàn và phí đặt cọc</label>
-                                    {validationErrors.tableType && <span className={styles.errorMessage}>{validationErrors.tableType}</span>}
-                                    {tablesType.map((table) => {
-                                        const isAvailableForLunch = isTableAvailable(table, 'lunch');
-                                        const isAvailableForDinner = isTableAvailable(table, 'dinner');
-                                        const isDisabled = !isAvailableForLunch && !isAvailableForDinner;
-
-                                        return (
-                                            <div 
-                                                key={table.tableID}
-                                                className={`${styles.tableCard} ${isDisabled ? styles.disabledTable : ''}`}
-                                                onClick={() => {
-                                                    if (isDisabled) return;
-
-                                                    const selectedTable = tablesType.find(t => t.tableID === table.tableID);
-                                                    const quantity = parseInt(tables.quantity) || 0;
-                                                    const multiplier = calculatePriceMultiplier(quantity);
-                                                    const adjustedPrice = selectedTable.tablePrice * multiplier;
-                                                    
-                                                    handleInputChange({
-                                                        target: {
-                                                            name: 'tableType',
-                                                            value: table.tableID
-                                                        }
-                                                    });
-                                                    handleInputChange({
-                                                        target: {
-                                                            name: 'tablePrice',
-                                                            value: adjustedPrice
-                                                        }
-                                                    });
-                                                }}
-                                            >
-                                                <input 
-                                                    type="radio" 
-                                                    name="selection"
-                                                    value={table.tableID}
-                                                    checked={tables.tableType === table.tableID}
-                                                    disabled={isDisabled}
-                                                    onChange={(e) => {
-                                                        if (isDisabled) return;
-                                                        const selectedTable = tablesType.find(t => t.tableID === e.target.value);
-                                                        handleInputChange({
-                                                            target: {
-                                                                name: 'tableType',
-                                                                value: e.target.value
-                                                            }
-                                                        });
-                                                        handleInputChange({
-                                                            target: {
-                                                                name: 'tablePrice',
-                                                                value: selectedTable.tablePrice
-                                                            }
-                                                        });
-                                                    }}
-                                                />
-                                                <div className={styles.tableContent}>
-                                                    <p className={styles.tableName}>{table.tableName}</p>
-                                                    <p className={styles.tablePrice}>{table.tablePrice.toLocaleString("vi-VN")} đ</p>
-                                                    {availableTables[table.tableID] && (
-                                                        <div className={styles.availabilityInfo}>
-                                                            <p>Số bàn còn trống:</p>
-                                                            <p className={!isAvailableForLunch ? styles.notAvailable : ''}>
-                                                                Ca trưa (9:00 - 14:00): {availableTables[table.tableID].lunch} bàn
-                                                                {!isAvailableForLunch && tables.quantity && 
-                                                                    <span className={styles.errorMessage}> (Không đủ chỗ cho {tables.quantity} người)</span>
-                                                                }
-                                                            </p>
-                                                            <p className={!isAvailableForDinner ? styles.notAvailable : ''}>
-                                                                Ca tối (18:00 - 23:00): {availableTables[table.tableID].dinner} bàn
-                                                                {!isAvailableForDinner && tables.quantity && 
-                                                                    <span className={styles.errorMessage}> (Không đủ chỗ cho {tables.quantity} người)</span>
-                                                                }
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className={styles.tableItem}>
-                                                    <img src={table.tableIMG} alt={table.tableName} className={styles.tableImg}/>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            <p className={styles.depositNote}>Để đảm bảo giữ chỗ tại nhà hàng, quý khách vui lòng đặt cọc trước 50% giá trị bàn 
-                            (mức phí sẽ thay đổi tùy theo loại bàn). Phần còn lại sẽ được trừ trực tiếp vào hóa đơn thanh toán cuối cùng.
-                            Chúng tôi trân trọng cảm ơn sự thông cảm và hợp tác của quý khách!</p>
-                            <button onClick={handlePayment} type="submit" className={styles.submitButton}>Xác nhận & Thanh toán</button>
+                            <button type="submit" className="bg-[var(--Aka)] text-white px-4 py-2 rounded-lg text-lg font-['Oswald'] hover:bg-red-600">Book</button>
                         </form>
                     </div>
                 </div>

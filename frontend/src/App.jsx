@@ -6,14 +6,29 @@ import Team from '@/pages/Team/team'
 import Event from '@/pages/Event/event' 
 import Contact from '@/pages/Contact/contact'
 import TableBooking from '@/pages/TableBooking/tablebooking'
-import Checkpayment from '@/pages/Checkpayment/checkpayment'
 import Login from '@/pages/auth/Login/Login'
 import Register from '@/pages/auth/Register/Register'
 import { Route, Routes } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
+import { useEffect } from 'react'
+import { checkToken } from './services/authService'
 function App() {
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (["/login", "/register", "/home", "/menu", "/team", "/event", "/contact"].includes(location.pathname)) return;
 
-    return(
+        const verify = async () => {
+            const isValid = await checkToken();
+
+            if (!isValid) {
+                localStorage.removeItem("token");
+                navigate("/login");
+            }
+        };
+        verify();
+    }, [location.pathname]);
+        return(
         <Routes>
             <Route path="/" element={<Home/>}/>
             <Route path='/login' element={<Login/>} />
@@ -22,7 +37,6 @@ function App() {
             <Route path="/menu" element={<Menu/>}/>
             <Route path="/tablebooking" element={<TableBooking/>}/>
             <Route path="/admin" element={<Admin/>}/>
-            <Route path="/checkpayment" element={<Checkpayment/>}/>
             <Route path="/rating" element={<Rating/>}/>
             <Route path="/team" element={<Team/>}/>
             <Route path="/event" element={<Event/>}/>

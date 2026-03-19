@@ -33,7 +33,7 @@ CREATE TABLE bookings (
     booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quantity INT NOT NULL,
     booking_time DATETIME NOT NULL,
-    end_time DATETIME NOT NULL,
+    end_time DATETIME,
     special_request TEXT,
     table_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
