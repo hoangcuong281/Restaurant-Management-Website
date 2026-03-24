@@ -8,13 +8,15 @@ import Contact from '@/pages/Contact/contact'
 import TableBooking from '@/pages/TableBooking/tablebooking'
 import Login from '@/pages/auth/Login/Login'
 import Register from '@/pages/auth/Register/Register'
-import { Route, Routes } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-
+import { Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from 'react'
 import { checkToken } from './services/authService'
+import ProtectedRoute from '@/services/ProtectedRoute'
+
 function App() {
     const navigate = useNavigate();
+    const location = useLocation();
+
     useEffect(() => {
         if (["/login", "/register", "/home", "/menu", "/team", "/event", "/contact", "/"].includes(location.pathname)) return;
 
@@ -26,21 +28,48 @@ function App() {
                 navigate("/login");
             }
         };
+
         verify();
-    }, [location.pathname]);
-        return(
+    }, [location.pathname, navigate]);
+
+    return (
         <Routes>
             <Route path="/" element={<Home/>}/>
-            <Route path='/login' element={<Login/>} />
-            <Route path='/register' element={<Register/>} />
             <Route path="/home" element={<Home/>}/>
             <Route path="/menu" element={<Menu/>}/>
-            <Route path="/tablebooking" element={<TableBooking/>}/>
-            <Route path="/admin" element={<Admin/>}/>
-            <Route path="/rating" element={<Rating/>}/>
             <Route path="/team" element={<Team/>}/>
             <Route path="/event" element={<Event/>}/>
             <Route path="/contact" element={<Contact/>}/>
+            <Route path='/login' element={<Login/>} />
+            <Route path='/register' element={<Register/>} />
+
+            <Route
+                path="/tablebooking"
+                element={
+                    <ProtectedRoute allowedRoles={["user", "admin"]}>
+                        <TableBooking />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/rating"
+                element={
+                    <ProtectedRoute allowedRoles={["user", "admin"]}>
+                        <Rating />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/admin"
+                element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                        <Admin />
+                    </ProtectedRoute>
+                }
+            />
+
             <Route path="*" element={<Home/>}/>
         </Routes>
     );
