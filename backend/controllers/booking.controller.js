@@ -65,9 +65,10 @@ export const deleteBooking = async (req, res) => {
 }
 
 export const checkTableAvailable = async (req, res) => {
-    // if qty < 6  : check for 1 table 
-    // else qty > 6 < 12: check for 2 tables but close to each other
-    const available = await RestaurantTable.findAvailable();
-    if(available) return res.status(200).json(available);
-    return res.status(500).json({message: 'No table is available'});
+    try {
+        const available = await RestaurantTable.findAvailable();
+        return res.status(200).json(available);
+    } catch (error) {
+        return res.status(500).json({message: 'No table is available'});
+    }
 }

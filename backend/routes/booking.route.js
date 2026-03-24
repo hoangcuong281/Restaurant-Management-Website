@@ -4,7 +4,7 @@ import verify_token from "../middleware/token_action.js";
 
 const router = express.Router();
 
-router.get('/check-available', checkTableAvailable);
+router.get('/check-available/', checkTableAvailable);
 
 router.get('/', verify_token, getAllBooking);
 router.get('/:id', verify_token, getBookingByUser);

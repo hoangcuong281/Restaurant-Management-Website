@@ -3,7 +3,12 @@ import db from '../config/db.js';
 const RestaurantTable = {
     findAvailable: async () => {
         const [row] = await db.execute(
-            `SELECT * FROM restaurant_tables WHERE status=?`,
+            `SELECT *
+            FROM restaurant_tables
+            WHERE status=?
+            ORDER BY 
+                LEFT(table_number, 1),
+                CAST(SUBSTRING(table_number, 2) AS UNSIGNED);`,
             ['available']
         )
         return row;
@@ -34,7 +39,7 @@ const RestaurantTable = {
         const [row] = await db.execute(
             `SELECT * FROM restaurant_tables`
         );
-        return row[0];
+        return row;
     },
 
     delete: async (table_id) => {

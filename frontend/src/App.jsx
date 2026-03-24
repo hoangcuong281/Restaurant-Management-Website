@@ -16,7 +16,7 @@ import { checkToken } from './services/authService'
 function App() {
     const navigate = useNavigate();
     useEffect(() => {
-        if (["/login", "/register", "/home", "/menu", "/team", "/event", "/contact"].includes(location.pathname)) return;
+        if (["/login", "/register", "/home", "/menu", "/team", "/event", "/contact", "/"].includes(location.pathname)) return;
 
         const verify = async () => {
             const isValid = await checkToken();
