@@ -1,4 +1,4 @@
-### Restaurant Management & Table Booking System
+# Restaurant Management & Table Booking System
 ## Introduction
 
 This project is a web-based Restaurant Management System that allows customers to explore menus, book tables online, and receive promotions, while enabling restaurant managers to efficiently manage operations such as bookings, menus, events, and customer feedback.
@@ -6,7 +6,7 @@ This project is a web-based Restaurant Management System that allows customers t
 The system is designed to enhance user experience with a modern interface and provide a seamless workflow for both customers and administrators.
 
 ## Features
-# Customer Side
+### Customer Side
 View Menu & Restaurant Information
 Browse detailed menu:
   Dish name
@@ -35,7 +35,7 @@ Customers can subscribe via email to receive promotions and updates
   Rating & Feedback
   Leave ratings using star system
   Provide detailed feedback about services
-# Admin Side
+### Admin Side
 Booking Management
   Create / Update / Delete bookings
   Confirm customer arrival and record total bill
