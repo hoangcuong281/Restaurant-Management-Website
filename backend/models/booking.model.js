@@ -37,14 +37,21 @@ const TableBooking = {
 
         await db.execute(
             `UPDATE bookings
-            SET ${setClause} WHERE meal_id=?`,
+            SET ${setClause} WHERE booking_id=?`,
             [...values, id]
         );
     },
 
     read: async() => {
         const [row] = await db.execute(
-            `SELECT * FROM bookings`
+            `
+            SELECT 
+                b.*,
+                p.amount
+            FROM bookings b
+            LEFT JOIN orders o ON b.booking_id = o.booking_id
+            LEFT JOIN payments p ON o.order_id = p.order_id;
+            `
         );
         return row;
     },

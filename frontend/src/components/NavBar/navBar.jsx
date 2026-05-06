@@ -93,6 +93,11 @@ function Header() {
                         <a href="/team" className="font-bold text-[var(--Shiro)] hover:text-[var(--Aka)]">TEAM</a>
                         <a href="/event" className="font-bold text-[var(--Shiro)] hover:text-[var(--Aka)]">EVENT</a>
                         <a href="/contact" className="font-bold text-[var(--Shiro)] hover:text-[var(--Aka)]">CONTACT</a>
+                        { (user && user.role === "admin") ? (
+                            <a href="/admin" className="hidden xl:flex bg-[var(--Aka)] text-[var(--Shiro)] px-4 py-2 rounded-xl font-bold">
+                                MANAGE
+                            </a>
+                        ) : null}
                     </div>
 
                     {/* Logo */}

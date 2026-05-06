@@ -27,7 +27,6 @@ export const updatePayment = async (req, res) => {
     if (unknownFields.length > 0) {
         return res.status(400).json({ message: "Invalid fields in request body", unknownFields });
     }
-    console.log(req.body)
     const { payment_id } = req.params;
     try {
         await Payment.update(req.body, payment_id);

@@ -27,6 +27,22 @@ const User = {
         );
     },
 
+    searchByName: async (q, limit = 20) => {
+        if (!q || !q.trim()) return [];
+
+        const like = `%${q.trim()}%`;
+        const safeLimit = Number(limit) || 20;
+        const [rows] = await db.execute(
+            `SELECT user_id AS _id, name, email, phone 
+            FROM users 
+            WHERE name LIKE ? 
+            LIMIT ${limit}`,
+            [like]
+        );
+
+        return rows;
+    },
+
     authenticate: async (user,pwd) => {
         if (!user) return 0;
 

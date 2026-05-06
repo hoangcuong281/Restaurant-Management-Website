@@ -1,9 +1,16 @@
 import TableBooking from '../models/booking.model.js'
 import RestaurantTable from '../models/restaurant_table.model.js';
+import User from '../models/user.model.js';
 
 export const getAllBooking = async (req, res) => {
     try{
         const bookings = await TableBooking.read();
+        for (const booking of bookings) {
+            const user = await User.findById(booking.user_id);
+            booking.name = user ? user.name : 'Unknown';
+            booking.email = user ? user.email : 'Unknown';
+            booking.phone = user ? user.phone : 'Unknown';
+        }
         return res.status(200).json(bookings);
     } catch (error) {
         return res.status(500).json({message: 'Failed to fetch bookings!'});

@@ -1,4 +1,3 @@
-import styles from './menu.module.css';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'; // empty star
@@ -26,9 +25,10 @@ function Menu() {
 
   const fetchMeals = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/meal");
+      const response = await fetch("http://localhost:3000/api/meal/menu/");
       const data = await response.json();
-      setMeals(data);
+      // Backend uses `meal_id` field; use response as-is
+      setMeals(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     }
@@ -53,17 +53,22 @@ function Menu() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/api/meal/", {
+      // Ensure numeric price and robust response handling (MySQL backend may return created object differently)
+      const payload = { ...newMeal, price: newMeal.price === '' ? null : Number(newMeal.price) };
+
+      const response = await fetch("http://localhost:3000/api/meal/create_meal/", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(newMeal),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
-      setMeals([...meals, data]);
+      const created = data.meal ?? data;
+      const normalizedCreated = created ? { ...created, meal_id: created.meal_id } : created;
+      setMeals(prev => [...prev, normalizedCreated]);
       setShowAddModal(false);
-      setNewMeal({ name: '', description: '', img: '', category: '', fileName: '' });
+      setNewMeal({ name: '', description: '', img: '', category: '', fileName: '', price: '' });
       setValidationErrors({});
     } catch (error) {
       console.error(error);
@@ -132,18 +137,20 @@ function Menu() {
     }
   };
   const handleDelete = async (id) => {
-    const meal = meals.find(m => m._id === id);
+    const meal = meals.find(m => (m.meal_id ?? m.id ?? m._id) === id);
     setMealToDelete(meal);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/meal/${mealToDelete._id}`, {
+      const id = mealToDelete.meal_id ?? mealToDelete.id ?? mealToDelete._id;
+      // Keep endpoint, but backend may also accept `/api/meal/${id}` — adjust server if needed
+      const response = await fetch(`http://localhost:3000/api/meal/del_meal/${id}`, {
         method: "DELETE"
       });
       if (response.ok) {
-        setMeals(meals.filter(meal => meal._id !== mealToDelete._id));
+        setMeals(meals.filter(meal => (meal.meal_id) !== id));
         setShowDeleteModal(false);
         setMealToDelete(null);
       } else {
@@ -177,7 +184,7 @@ function Menu() {
       });
 
       const data = await response.json();
-      
+
       if (response.ok && data.secure_url) {
         setEditMeal(prev => ({
           ...prev,
@@ -198,18 +205,28 @@ function Menu() {
 
   const handleEdit = async (meal) => {
     try {
-      const { _id, __v, ...mealData } = meal;
-      const response = await fetch(`http://localhost:3000/api/meal/${_id}`, {
+      console.log(meal)
+      const id = meal.meal_id;
+      const { mealData } = meal;
+
+      const response = await fetch(`http://localhost:3000/api/meal/upd_meal/${id}`, {
         method: "PUT",
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(mealData)
+        // ensure numeric price is sent as number
+        body: JSON.stringify({ ...mealData, price: mealData.price === '' ? null : Number(mealData.price) })
       });
-      
+
       if (response.ok) {
-        const updatedMeal = await response.json();
-        setMeals(meals.map(m => m._id === _id ? updatedMeal.meal : m));
+        setMeals(prev =>
+          prev.map(m =>
+            m.meal_id === id
+              ? { ...m, ...mealData } // 🔥 merge giữ data cũ
+              : m
+          )
+        );
+
         setShowEditModal(false);
         setEditMeal(null);
       } else {
@@ -218,13 +235,15 @@ function Menu() {
         alert(`Failed to update meal: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error("Error updating meal:", error.message);
-      alert(`Error updating meal: ${error.message}`);
+      console.error("Error updating meal:", error);
+      alert(`Error updating meal: ${error.message || error}`);
     }
   };
 
   const handleEditClick = (meal) => {
-    setEditMeal(meal);
+    // normalize before editing
+    const normalized = { ...meal, meal_id: meal.meal_id ?? meal.id ?? meal._id };
+    setEditMeal(normalized);
     setEditFileName('');
     setShowEditModal(true);
   };
@@ -260,11 +279,10 @@ function Menu() {
         });
 
         if (response.ok) {
-            setMeals(meals.map(meal => 
-                meal._id === mealId 
-                    ? { ...meal, highlight: !meal.highlight }
-                    : meal
-            ));
+        setMeals(prev => prev.map(meal => {
+          const mId = meal.meal_id;
+          return mId === mealId ? { ...meal, highlight: !meal.highlight } : meal;
+        }));
         }
     } catch (error) {
         console.error('Error updating highlight status:', error);
@@ -287,17 +305,17 @@ function Menu() {
 };
 
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col items-center w-full min-h-full">
       {notification.show && (
-        <div className={styles.notification}>
+        <div className="fixed top-5 right-5 p-4 rounded bg-white shadow z-50 border-l-4 border-red-500 text-red-500">
           {notification.message}
         </div>
       )}
-      <div className={styles.header}>
-        <button onClick={() => setShowAddModal(true)} className={styles.buttonAdd}>Thêm</button>
-        <div className={styles.searchBar}>
+      <div className="flex items-center w-full ml-5 flex-wrap gap-4">
+        <button onClick={() => setShowAddModal(true)} className="px-3 py-2 bg-green-600 text-white rounded-md font-medium">Thêm</button>
+        <div className="flex gap-4 ml-4 items-center">
           <select 
-            className={styles.input}
+            className="px-3 py-2 border border-gray-300 rounded-md w-48"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
@@ -315,53 +333,52 @@ function Menu() {
       </div>
       </div>
       {showAddModal && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>Thêm món ăn</h2>
-            <div className={styles.formGroup}>
-              <label>Tên:</label>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-11/12 max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Thêm món ăn</h2>
+            <div className="mb-4">
+              <label className="block mb-1">Tên:</label>
               <input
                 type="text"
                 name="name"
                 value={newMeal.name}
                 onChange={handleInputChange}
-                className={validationErrors.name ? styles.inputError : ''}
+                className={`w-full p-2 border rounded ${validationErrors.name ? 'border-red-500' : 'border-gray-300'}`}
               />
-              {validationErrors.name && <span className={styles.errorMessage}>{validationErrors.name}</span>}
+              {validationErrors.name && <span className="text-red-500 text-sm">{validationErrors.name}</span>}
             </div>
-            <div className={styles.formGroup}>
-              <label>Mô tả:</label>
+            <div className="mb-4">
+              <label className="block mb-1">Mô tả:</label>
               <textarea
                 name="description"
                 value={newMeal.description}
                 onChange={handleInputChange}
-                className={validationErrors.description ? styles.inputError : ''}
+                className={`w-full p-2 border rounded ${validationErrors.description ? 'border-red-500' : 'border-gray-300'}`}
               />
-              {validationErrors.description && <span className={styles.errorMessage}>{validationErrors.description}</span>}
+              {validationErrors.description && <span className="text-red-500 text-sm">{validationErrors.description}</span>}
             </div>
-            <div className={styles.formGroup}>
-              <label>Hình ảnh:</label>
-              <div className={styles.fileInputContainer}>
-                <label className={styles.fileInputLabel}>
+            <div className="mb-4">
+              <label className="block mb-1">Hình ảnh:</label>
+              <div className="flex flex-col gap-2">
+                <label className="inline-block px-3 py-2 bg-gray-100 border rounded cursor-pointer">
                   {newMeal.fileName || 'Chọn hình ảnh'}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleFileReceive}
-                    className={validationErrors.img ? styles.inputError : ''}
                     style={{ display: 'none' }}
                   />
                 </label>
+                {validationErrors.img && <span className="text-red-500 text-sm">{validationErrors.img}</span>}
               </div>
-              {validationErrors.img && <span className={styles.errorMessage}>{validationErrors.img}</span>}
             </div>
-            <div className={styles.formGroup}>
-              <label>Loại:</label>
+            <div className="mb-4">
+              <label className="block mb-1">Loại:</label>
               <select
                 name="category"
                 value={newMeal.category}
                 onChange={handleInputChange}
-                className={validationErrors.category ? styles.inputError : ''}
+                className={`w-full p-2 border rounded ${validationErrors.category ? 'border-red-500' : 'border-gray-300'}`}
               >
                 <option value="">Chọn loại món ăn</option>
                 <option value="appetizers">Khai vị</option>
@@ -374,73 +391,53 @@ function Menu() {
                 <option value="alcohol">Đồ uống có cồn</option>
                 <option value="salads">Salads</option>
               </select>
-              {validationErrors.category && <span className={styles.errorMessage}>{validationErrors.category}</span>}
+              {validationErrors.category && <span className="text-red-500 text-sm">{validationErrors.category}</span>}
             </div>
-            <div className={styles.formGroup}>
-              <label>Giá:</label>
+            <div className="mb-4">
+              <label className="block mb-1">Giá:</label>
               <input
                 type="number"
                 name="price"
                 value={newMeal.price}
                 onChange={handleInputChange}
-                className={validationErrors.price ? styles.inputError : ''}
+                className={`w-full p-2 border rounded ${validationErrors.price ? 'border-red-500' : 'border-gray-300'}`}
               />
-              {validationErrors.price && <span className={styles.errorMessage}>{validationErrors.price}</span>}
+              {validationErrors.price && <span className="text-red-500 text-sm">{validationErrors.price}</span>}
             </div>
-            
-            <div className={styles.modalButtons}>
-              <button onClick={handleAdd}>Lưu</button>
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={handleAdd} className="px-3 py-2 bg-green-600 text-white rounded">Lưu</button>
               <button onClick={() => {
                 setShowAddModal(false);
                 setNewMeal({ name: '', description: '', img: '', category: '', fileName: '', price: '' });
                 setValidationErrors({});
-              }}>Huỷ</button>
+              }} className="px-3 py-2 bg-red-500 text-white rounded">Huỷ</button>
             </div>
           </div>
         </div>
       )}
       {showEditModal && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>Sửa món ăn</h2>
-            <div className={styles.formGroup}>
-              <label>Tên:</label>
-              <input
-                type="text"
-                name="name"
-                value={editMeal?.name || ''}
-                onChange={handleEditChange}
-              />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-11/12 max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Sửa món ăn</h2>
+            <div className="mb-4">
+              <label className="block mb-1">Tên:</label>
+              <input type="text" name="name" value={editMeal?.name || ''} onChange={handleEditChange} className="w-full p-2 border rounded" />
             </div>
-            <div className={styles.formGroup}>
-              <label>Mô tả:</label>
-              <textarea
-                name="description"
-                value={editMeal?.description || ''}
-                onChange={handleEditChange}
-              />
+            <div className="mb-4">
+              <label className="block mb-1">Mô tả:</label>
+              <textarea name="description" value={editMeal?.description || ''} onChange={handleEditChange} className="w-full p-2 border rounded" />
             </div>
-            <div className={styles.formGroup}>
-              <label>Hình ảnh:</label>
-              <div className={styles.fileInputContainer}>
-                <label className={styles.fileInputLabel}>
-                  {editFileName || 'Chọn hình ảnh'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleEditFileReceive}
-                    style={{ display: 'none' }}
-                  />
+            <div className="mb-4">
+              <label className="block mb-1">Hình ảnh:</label>
+              <div className="flex flex-col gap-2">
+                <label className="inline-block px-3 py-2 bg-gray-100 border rounded cursor-pointer">{editFileName || 'Chọn hình ảnh'}
+                  <input type="file" accept="image/*" onChange={handleEditFileReceive} style={{ display: 'none' }} />
                 </label>
               </div>
             </div>
-            <div className={styles.formGroup}>
-              <label>Loại:</label>
-              <select
-                name="category"
-                value={editMeal?.category || ''}
-                onChange={handleEditChange}
-              >
+            <div className="mb-4">
+              <label className="block mb-1">Loại:</label>
+              <select name="category" value={editMeal?.category || ''} onChange={handleEditChange} className="w-full p-2 border rounded">
                 <option value="">Chọn loại món ăn</option>
                 <option value="appetizers">Khai vị</option>
                 <option value="maki">Maki</option>
@@ -453,64 +450,52 @@ function Menu() {
                 <option value="salads">Salads</option>
               </select>
             </div>
-            <div className={styles.formGroup}>
-              <label>Price:</label>
-              <input
-                type="number"
-                name="price"
-                value={editMeal?.price || ''}
-                onChange={handleEditChange}
-              />
+            <div className="mb-4">
+              <label className="block mb-1">Price:</label>
+              <input type="number" name="price" value={editMeal?.price || ''} onChange={handleEditChange} className="w-full p-2 border rounded" />
             </div>
-            
-            <div className={styles.modalButtons}>
-              <button onClick={handleEditSave}>Lưu</button>
-              <button onClick={() => setShowEditModal(false)}>Huỷ</button>
+            <div className="flex justify-end gap-3 mt-4">
+              <button onClick={handleEditSave} className="px-3 py-2 bg-green-600 text-white rounded">Lưu</button>
+              <button onClick={() => setShowEditModal(false)} className="px-3 py-2 bg-red-500 text-white rounded">Huỷ</button>
             </div>
           </div>
         </div>
       )}
       {showDeleteModal && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <h2>Xác nhận xoá</h2>
-            <p>Bạn có chắc chắn muốn xoá "{mealToDelete?.name}"?</p>
-            <div className={styles.modalButtons}>
-              <button onClick={confirmDelete} className={styles.buttonDelete}>Có</button>
-              <button onClick={() => {
-                setShowDeleteModal(false);
-                setMealToDelete(null);
-              }}>Huỷ</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-11/12 max-w-md">
+            <h2 className="text-xl font-semibold mb-2">Xác nhận xoá</h2>
+            <p className="mb-4">Bạn có chắc chắn muốn xoá "{mealToDelete?.name}"?</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={confirmDelete} className="px-3 py-2 bg-red-600 text-white rounded">Có</button>
+              <button onClick={() => { setShowDeleteModal(false); setMealToDelete(null); }} className="px-3 py-2 bg-gray-300 rounded">Huỷ</button>
             </div>
           </div>
         </div>
       )}
-      <div className={styles.menuItems}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full px-4 mt-6">
         {meals
           .filter(meal => !selectedCategory || meal.category === selectedCategory)
-          .map((meal) => (
-            <div key={meal._id} className={styles.card}>
-                <div className={styles.favoriteButton} onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHighlight(meal._id, meal.highlight, meal.category);
-                }}>
-                    <FontAwesomeIcon 
-                        icon={meal.highlight ? fasStar : farStar}
-                        className={styles.starIcon}
-                    />
+          .map((meal) => {
+            const id = meal.meal_id;
+            return (
+            <div key={id} className="w-full h-96 rounded-2xl relative overflow-hidden flex flex-col bg-white">
+                <div className="absolute top-2 right-2 z-10 cursor-pointer bg-white rounded-full w-9 h-9 flex items-center justify-center shadow" onClick={(e) => { e.stopPropagation(); toggleHighlight(id, meal.highlight, meal.category); }}>
+                    <FontAwesomeIcon icon={meal.highlight ? fasStar : farStar} className="text-xl" />
                 </div>
-                <p className={styles.card__price}>
-                  {Number(meal.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
-                </p>
-                <img src={meal.img} alt={meal.name} className={styles.card__image} />
-                <div className={styles.card__content}>
-                    <p className={styles.card__title}>{meal.name}</p>
-                    <p className={styles.card__description}>{meal.description}</p>
-                    <button onClick={() => handleEditClick(meal)} className={styles.buttonEdit}>Sửa</button>
-                    <button onClick={() => handleDelete(meal._id)} className={styles.buttonDelete}>Xoá</button>
+                <p className="absolute top-2 left-2 bg-[var(--Aka)] text-[var(--Shiro)] rounded-full px-3 py-1 text-sm font-bold">{Number(meal.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</p>
+                <img src={meal.img} alt={meal.name} className="w-full h-1/2 object-cover" />
+                <div className="w-full h-1/2 p-4 bg-[var(--Kuro)] text-[var(--Shiro)] flex flex-col items-center">
+                    <p className="font-[var(--font-display)] font-bold text-base">{meal.name}</p>
+                    <p className="text-sm text-center py-2">{meal.description}</p>
+                    <div className="mt-auto flex gap-2">
+                      <button onClick={() => handleEditClick(meal)} className="px-3 py-1 rounded bg-blue-500 text-white">Sửa</button>
+                      <button onClick={() => handleDelete(id)} className="px-3 py-1 rounded bg-red-500 text-white">Xoá</button>
+                    </div>
                 </div>
             </div>
-          ))}
+            );
+          })}
       </div>
     </div>
   );

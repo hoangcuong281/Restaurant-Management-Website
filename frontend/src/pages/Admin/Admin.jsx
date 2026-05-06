@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Menu from './Menu/menu'
-import Table from './Table/table'
+import Booking from './Table/table'
 import Statistic from './Statistic/statistic';
 import CusService from './CustomerService/cusService';
 import EventManagement from './Event/event';
@@ -50,7 +50,7 @@ function Admin(){
                     {/* Desktop tabs */}
                     <div className="hidden md:flex gap-2">
                         <button className={tabClass('menu')} onClick={() => setActiveView('menu')}>THỰC ĐƠN</button>
-                        <button className={tabClass('table')} onClick={() => setActiveView('table')}>ĐẶT BÀN</button>
+                        <button className={tabClass('booking')} onClick={() => setActiveView('booking')}>ĐẶT BÀN</button>
                         <button className={tabClass('statistic')} onClick={() => setActiveView('statistic')}>THỐNG KÊ</button>
                         <button className={tabClass('customerService')} onClick={() => setActiveView('customerService')}>DỊCH VỤ KHÁCH HÀNG</button>
                         <button className={tabClass('eventManagement')} onClick={() => setActiveView('eventManagement')}>SỰ KIỆN</button>
@@ -61,7 +61,7 @@ function Admin(){
                 <div className="bg-white rounded-lg p-4 shadow-md">
                     <div className="flex flex-col">
                         {activeView === 'menu' && <Menu/>}
-                        {activeView === 'table' && <Table/>}
+                        {activeView === 'booking' && <Booking/>}
                         {activeView === 'statistic' && <Statistic/>}
                         {activeView === 'customerService' && <CusService/>}
                         {activeView === 'eventManagement' && <EventManagement/>}

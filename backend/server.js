@@ -9,6 +9,7 @@ import ratingRoutes from './routes/rating.route.js';
 import restaurantTableRoute from './routes/restaurant_table.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import authRoutes from './routes/auth.route.js';
+import usersRoutes from './routes/user.route.js';
 const app = express();
 const port = process.env.PORT;
 
@@ -24,5 +25,6 @@ app.use('/api/restaurant-table', restaurantTableRoute);
 app.use('/api/event', eventRoutes);
 app.use('/api/order', orderRoutes);
 app.use('/api/order-item', orderItemRoutes);
+app.use('/api/users', usersRoutes);
 
 app.listen(port, () => {});

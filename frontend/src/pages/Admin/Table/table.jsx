@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import styles from './table.module.css';
+import { useEffect, useState } from 'react';
+import AddModal from './table_services/add_modal';
+import DeleteModal from './table_services/delete_modal';
+import EditModal from './table_services/edit_modal';
+import CheckoutModal from './table_services/checkout_modal';
 
-function Table() {
+function Booking() {
     const [tables, setTables] = useState([]);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editTable, setEditTable] = useState(null);
@@ -9,36 +12,28 @@ function Table() {
     const [tableToDelete, setTableToDelete] = useState(null);
     const [showCheckOutModal, setShowCheckOutModal] = useState(false);
     const [checkOutTable, setCheckOutTable] = useState(null);
+    // eslint-disable-next-line no-unused-vars
     const [billTotal, setBillTotal] = useState('');
     const [filter, setFilter] = useState({
         date: '',
-        billStatus: '',
-        quantity: '',
-        tableType: ''
+        quantity: ''
     });
     const [showAddModal, setShowAddModal] = useState(false);
-    const [newTable, setNewTable] = useState({
-        tableID: 'admin',
-        name: '',
-        quantity: '',
-        time: '',
-        date: '',
-        phone: '',
-        email: '',
-        occasion: '',
-        specialRequest: '',
-        tableType: '',
-        depositStatus: '',
-        bill: 0,
-        status: 'pending'
-    });
-    const [addValidation, setAddValidation] = useState({});
+
+    const getAuthHeaders = (extra = {}) => {
+        const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+        return {
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            ...extra
+        };
+    }
 
     const fetchTables = async () =>{
         try{
-            const response = await fetch("http://localhost:3000/api/table");
+            const response = await fetch("http://localhost:3000/api/booking/", { headers: getAuthHeaders() });
+            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
-            setTables(data);
+            setTables(data || []);
         } catch(error){
             console.log(error);
         }
@@ -50,183 +45,35 @@ function Table() {
         setShowDeleteModal(true);
     }
 
-    const confirmDelete = async () => {
-        try {
-            const response = await fetch(`http://localhost:3000/api/table/${tableToDelete._id}`, {
-                method: 'DELETE'
-            });
-            if (response.ok) {
-                setTables(tables.filter(table => table._id !== tableToDelete._id));
-                setShowDeleteModal(false);
-                setTableToDelete(null);
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     const handleEditClick = (table) => {
-        const tableDataForEdit = {
-            name: table.name || '',
-            quantity: table.quantity || '',
-            time: table.time || '',
-            date: table.date || '',
-            phone: table.phone || '',
-            email: table.email || '',
-            occasion: table.occasion || '',
-            specialRequest: table.specialRequest || '',
-            tableType: table.tableType || '',
-            depositStatus: table.depositStatus || '',
-            bill: table.bill || '',
-            status: table.status || '',
-            _id: table._id
-        };
-        setEditTable(tableDataForEdit);
+        setEditTable(table);
         setShowEditModal(true);
-    }
-
-    const handleEditChange = (e) => {
-        const { name, value } = e.target;
-        setEditTable(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    }
-
-    const handleEditSave = async () => {
-        try {
-            const { _id, __v, ...tableData } = editTable;
-            
-            const response = await fetch(`http://localhost:3000/api/table/update/${editTable._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(tableData)
-            });
-            if (response.ok) {
-                const updatedTable = await response.json();
-                setTables(tables.map(t => t._id === editTable._id ? updatedTable : t));
-                setShowEditModal(false);
-                setEditTable(null);
-            }
-        } catch (error) {
-            console.log(error);
-        }
     }
 
     const handleCheckOut = (table) => {
         setCheckOutTable(table);
-        setBillTotal('');
         setShowCheckOutModal(true);
     };
 
-    const handleConfirmCheckOut = async () => {
-        try {
-            const response = await fetch(`http://localhost:3000/api/table/bill/${checkOutTable}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ bill: billTotal, status: 'used' })
-            });
 
-            if (response.ok) {
-                const updatedTable = await response.json();
-                setTables(tables.map(t => t._id === checkOutTable? updatedTable : t));
-            }
-        } catch (error) {
-            console.log(error);
-        }
-        setShowCheckOutModal(false);
-        setCheckOutTable(null);
-        setBillTotal('');
-    };
-
-    const handleAddChange = (e) => {
-        const { name, value } = e.target;
-        setNewTable(prev => ({
-            ...prev,
-            [name]: name === 'tableID' ? prev.tableID : value
-        }));
-        setAddValidation(prev => {
-            const newErrors = { ...prev };
-            if (value && value.toString().trim() !== '') {
-                delete newErrors[name];
-            }
-            return newErrors;
-        });
-    };
-
-    const handleAddSave = async () => {
-        const requiredFields = [
-            { key: 'name', label: 'Tên' },
-            { key: 'quantity', label: 'Số lượng người' },
-            { key: 'time', label: 'Giờ' },
-            { key: 'date', label: 'Ngày' },
-            { key: 'phone', label: 'Số điện thoại' },
-            { key: 'email', label: 'Email' },
-            { key: 'tableType', label: 'Loại bàn' },
-            { key: 'depositStatus', label: 'Trạng thái đặt cọc' },
-        ];
-        let errors = {};
-        requiredFields.forEach(field => {
-            if (!newTable[field.key] || newTable[field.key].toString().trim() === '') {
-                errors[field.key] = `Vui lòng nhập ${field.label}.`;
-            }
-        });
-        setAddValidation(errors);
-        if (Object.keys(errors).length > 0) return;
-        console.log(newTable);
-        try {
-            const response = await fetch('http://localhost:3000/api/table/admin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newTable)
-            });
-            if (response.ok) {
-                const addedTable = await response.json();
-                setTables(prev => [...prev, addedTable]);
-                setShowAddModal(false);
-                setNewTable({
-                    tableID: 'admin',
-                    name: '',
-                    quantity: '',
-                    time: '',
-                    date: '',
-                    phone: '',
-                    email: '',
-                    occasion: '',
-                    specialRequest: '',
-                    tableType: '',
-                    depositStatus: '',
-                    bill: 0,
-                    status: 'pending'
-                });
-                setAddValidation({});
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const formatDate = (dateString) => {
+    function formatDateTime(dateString) {
         if (!dateString) return '';
+
         const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(-2);
+
+        const hours = String(date.getHours()).padStart(2, '0'); // 24h
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
     }
 
     const filteredTables = tables.filter(table => {
         if (filter.date && table.date !== filter.date) return false;
-        if (filter.billStatus === 'paid' && !table.bill) return false;
-        if (filter.billStatus === 'unpaid' && table.bill) return false;
         if (filter.quantity && Number(table.quantity) !== Number(filter.quantity)) return false;
-        if (filter.tableType && table.tableType !== filter.tableType) return false;
         if (filter.status && table.status !== filter.status) return false;
         return true;
     });
@@ -236,532 +83,156 @@ function Table() {
     }, []);
 
 
-    return(
-        <div className={styles.tableContainer}>
-            <button
-                className={styles.addBtn}
-                style={{ marginBottom: 16 }}
-                onClick={() => setShowAddModal(true)}
-            >
-                Thêm
-            </button>
-            <div className={styles.filterContainer}>
-                <div className={styles.filterItem}>
-                    <label>Ngày: </label>
+    return (
+        <div className="w-full min-h-screen flex flex-col items-center justify-start px-4 py-6 space-y-4">
+            <div className="w-full max-w-7xl flex items-center justify-between">
+                <button
+                    className="px-4 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-500"
+                    onClick={() => setShowAddModal(true)}
+                >
+                    Add
+                </button>
+            </div>
+
+            <div className="w-full max-w-7xl flex flex-wrap gap-4 mb-4 items-center">
+                <div className="flex items-center gap-2">
+                    <label className="font-medium text-gray-700">Date:</label>
                     <input
-                        className={styles.inputSquare}
+                        className="text-gray-800 px-2 py-1 border border-gray-200 rounded"
                         type="date"
                         value={filter.date}
                         onChange={e => setFilter(f => ({ ...f, date: e.target.value }))}
                     />
                 </div>
-                <div className={styles.filterItem}>
-                    <label>Trạng thái bill: </label>
-                    <select
-                        className={styles.inputSquare}
-                        value={filter.billStatus}
-                        onChange={e => setFilter(f => ({ ...f, billStatus: e.target.value }))}
-                    >
-                        <option value="">Tất cả</option>
-                        <option value="paid">Đã thanh toán</option>
-                        <option value="unpaid">Chưa thanh toán</option>
-                    </select>
-                </div>
-                <div className={styles.filterItem}>
-                    <label>Số lượng người: </label>
+
+                <div className="flex items-center gap-2">
+                    <label className="font-medium text-gray-700">Quantity:</label>
                     <input
-                        className={styles.inputSquare}
+                        className="text-gray-800 px-2 py-1 border border-gray-200 rounded w-20"
                         type="number"
                         min="1"
                         value={filter.quantity}
                         onChange={e => setFilter(f => ({ ...f, quantity: e.target.value }))}
                         placeholder="VD: 4"
-                        style={{ width: 60 }}
                     />
                 </div>
-                <div className={styles.filterItem}>
-                    <label>Loại bàn: </label>
+
+                <div className="flex items-center gap-2">
+                    <label className="font-medium text-gray-700">Status:</label>
                     <select
-                        className={styles.inputSquare}
-                        value={filter.tableType}
-                        onChange={e => setFilter(f => ({ ...f, tableType: e.target.value }))}
-                        style={{ width: 120 }}
-                    >
-                        <option value="">Tất cả</option>
-                        <option value="NORMALTABLE">Bàn thường</option>
-                        <option value="PRENIUMTABLE">Bàn cao cấp</option>
-                        <option value="VIPTABLE">Bàn VIP</option>
-                    </select>
-                </div>
-                <div className={styles.filterItem}>
-                    <label>Trạng thái: </label>
-                    <select
-                        className={styles.inputSquare}
+                        className="text-gray-800 px-2 py-1 border border-gray-200 rounded"
                         value={filter.status}
                         onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}
                     >
-                        <option value="">Tất cả</option>
-                        <option value="pending">Chưa dùng</option>
-                        <option value="using">Đang dùng</option>
-                        <option value="used">Đã dùng</option>
-                        <option value="canceled">Đã hủy</option>
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="using">In Use</option>
+                        <option value="completed">Used</option>
+                        <option value="canceled">Canceled</option>
                     </select>
                 </div>
+
                 <button
-                    onClick={() => setFilter({ date: '', billStatus: '', quantity: '', tableType: '', status: '' })}
-                    className={styles.clearFilterBtn}>
-                    Xoá lọc
+                    onClick={() => setFilter({ date: '', quantity: '', status: '' })}
+                    className="px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200">
+                    Unfiltered
                 </button>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tên</th>
-                        <th>Số lượng</th>
-                        <th>Giờ</th>
-                        <th>Ngày</th>
-                        <th>Số điện thoại</th>
-                        <th>Email</th>
-                        <th>Dịp đặc biệt</th>
-                        <th>Yêu cầu đặc biệt</th>
-                        <th>Loại bàn</th>
-                        <th>Trạng thái cọc</th>
-                        <th>Tổng hoá đơn</th>
-                        <th>Trạng thái</th> {/* Thêm cột trạng thái */}
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredTables
-                        .sort((a, b) => {
-                            const now = new Date();
-                            const timeA = new Date(`${a.date}T${a.time}`);
-                            const timeB = new Date(`${b.date}T${b.time}`);
-                            const diffA = Math.abs(timeA - now);
-                            const diffB = Math.abs(timeB - now);
-                            return diffA - diffB;
-                        })
-                        .map((table) => (
-                            <tr
-                                key={table._id}
-                                className={
-                                    table.depositStatus === "paid" && Number(table.bill) > 0
-                                        ? styles["row-paid-all"]
-                                        : table.depositStatus === "paid"
-                                            ? styles["row-paid-deposit"]
-                                            : styles["row-unpaid-all"]
-                                }
-                            >
-                                <td>{table.name}</td>
-                                <td>{table.quantity}</td>
-                                <td>{table.time}</td>
-                                <td>{formatDate(table.date)}</td>
-                                <td>{table.phone}</td>
-                                <td>{table.email}</td>
-                                <td>{table.occasion}</td>
-                                <td>{table.specialRequest}</td>
-                                <td>{table.tableType}</td>
-                                <td>
-                                    {table.depositStatus === "paid"
-                                        ? "Đã thanh toán"
-                                        : "Chưa thanh toán"}
-                                </td>
-                                <td>
-                                    {(table.bill && Number(table.bill) !== 0)
-                                        ? Number(table.bill).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
-                                        : 'Chưa thanh toán'}
-                                </td>
-                                <td>
-                                    {table.status === 'pending' && 'Chưa dùng'}
-                                    {table.status === 'using' && 'Đang dùng'}
-                                    {table.status === 'used' && 'Đã dùng'}
-                                    {table.status === 'canceled' && 'Đã hủy'}
-                                </td>
-                                <td>
-                                    <button
-                                        className={styles.editBtn}
-                                        onClick={() => handleEditClick(table)}
-                                    >
-                                        Sửa
-                                    </button>
-                                    <button
-                                        className={styles.deleteBtn}
-                                        onClick={() => handleDelete(table._id)}
-                                    >
-                                        Xoá
-                                    </button>
-                                    <button
-                                        className={styles.checkOutBtn}
-                                        onClick={() => handleCheckOut(table._id)}
-                                    >
-                                        Trả bàn
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                </tbody>
-            </table>
 
-            {/* Add Modal */}
-            {showAddModal && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Thêm đơn đặt bàn</h2>
-                            <button
-                                className={styles.closeBtn}
-                                onClick={() => setShowAddModal(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Tên:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={newTable.name}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.name && <span className={styles.errorMessage}>{addValidation.name}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Số lượng:</label>
-                            <input
-                                type="number"
-                                name="quantity"
-                                value={newTable.quantity}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.quantity && <span className={styles.errorMessage}>{addValidation.quantity}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Giờ:</label>
-                            <input
-                                type="time"
-                                name="time"
-                                value={newTable.time}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.time && <span className={styles.errorMessage}>{addValidation.time}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Ngày:</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={newTable.date}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.date && <span className={styles.errorMessage}>{addValidation.date}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Số điện thoại:</label>
-                            <input
-                                type="tel"
-                                name="phone"
-                                value={newTable.phone}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.phone && <span className={styles.errorMessage}>{addValidation.phone}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Email:</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={newTable.email}
-                                onChange={handleAddChange}
-                            />
-                            {addValidation.email && <span className={styles.errorMessage}>{addValidation.email}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Dịp đặc biệt:</label>
-                            <input
-                                type="text"
-                                name="occasion"
-                                value={newTable.occasion}
-                                onChange={handleAddChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Yêu cầu đặc biệt:</label>
-                            <textarea
-                                name="specialRequest"
-                                value={newTable.specialRequest}
-                                onChange={handleAddChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Loại bàn:</label>
-                            <select
-                                name="tableType"
-                                value={newTable.tableType}
-                                onChange={handleAddChange}
-                            >
-                                <option value="">Chọn loại bàn</option>
-                                <option value="NORMALTABLE">Bàn thường</option>
-                                <option value="PRENIUMTABLE">Bàn cao cấp</option>
-                                <option value="VIPTABLE">Bàn VIP</option>
-                            </select>
-                            {addValidation.tableType && <span className={styles.errorMessage}>{addValidation.tableType}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Trạng thái cọc:</label>
-                            <div className={styles.radioGroup}>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="depositStatus"
-                                        value="paid"
-                                        checked={newTable.depositStatus === "paid"}
-                                        onChange={handleAddChange}
-                                    />
-                                    Dã thanh toán
-                                </label>
-                                <label style={{ marginLeft: '16px' }}>
-                                    <input
-                                        type="radio"
-                                        name="depositStatus"
-                                        value="unpaid"
-                                        checked={newTable.depositStatus === "unpaid"}
-                                        onChange={handleAddChange}
-                                    />
-                                    Chưa thanh toán
-                                </label>
-                            </div>
-                            {addValidation.depositStatus && <span className={styles.errorMessage}>{addValidation.depositStatus}</span>}
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Tổng hoá đơn:</label>
-                            <input
-                                type="text"
-                                name="bill"
-                                value={newTable.bill}
-                                onChange={handleAddChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Trạng thái:</label>
-                            <select
-                                name="status"
-                                value={newTable.status}
-                                onChange={handleAddChange}
-                            >
-                                <option value="pending">Chưa dùng</option>
-                                <option value="using">Đang dùng</option>
-                                <option value="used">Đã dùng</option>
-                                <option value="canceled">Đã hủy</option>
-                            </select>
-                        </div>
-                        <div className={styles.modalButtons}>
-                            <button onClick={handleAddSave}>Lưu</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <div className="w-full max-w-7xl overflow-x-auto">
+                <table className="min-w-full bg-white divide-y divide-gray-200 rounded-lg">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Name</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Quantity</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Booking Time</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">End Time</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Phone Number</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Email</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Special Request</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Total Bill</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Status</th>
+                            <th className="p-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {filteredTables
+                            .sort((a, b) => {
+                                const now = new Date();
+                                const timeA = new Date(`${a.date}T${a.time}`);
+                                const timeB = new Date(`${b.date}T${b.time}`);
+                                const diffA = Math.abs(timeA - now);
+                                const diffB = Math.abs(timeB - now);
+                                return diffA - diffB;
+                            })
+                            .map((table) => {
+                                const rowClass = table.status === 'completed' && Number(table.amount) > 0
+                                    ? 'bg-green-50 hover:bg-green-100 cursor-pointer'
+                                    : table.status === 'pending'
+                                        ? 'bg-yellow-50 hover:bg-yellow-100 cursor-pointer'
+                                        : table.status === 'canceled'
+                                            ? 'bg-red-50 hover:bg-red-100 cursor-pointer'
+                                            : 'bg-gray-50 hover:bg-gray-100 cursor-pointer';
+                                return (
+                                    <tr key={table._id} className={`${rowClass}`}>
+                                        <td className="p-3 text-center text-sm">{table.name}</td>
+                                        <td className="p-3 text-center text-sm">{table.quantity}</td>
+                                        <td className="p-3 text-center text-sm">{formatDateTime(table.booking_time)}</td>
+                                        <td className="p-3 text-center text-sm">{formatDateTime(table.end_time)}</td>
+                                        <td className="p-3 text-center text-sm">{table.phone}</td>
+                                        <td className="p-3 text-center text-sm">{table.email}</td>
+                                        <td className="p-3 text-center text-sm">{table.special_request}</td>
+                                        <td className="p-3 text-center text-sm">{(table.amount && Number(table.amount) !== 0) ? Number(table.amount).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : 'Not Paid'}</td>
+                                        <td className="p-3 text-center text-sm">
+                                            {table.status === 'pending' && 'Pending'}
+                                            {table.status === 'using' && 'In Use'}
+                                            {table.status === 'completed' && 'Used'}
+                                            {table.status === 'canceled' && 'Canceled'}
+                                        </td>
+                                        <td className="p-3 text-center text-sm flex flex-col items-center justify-center gap-2">
+                                            <button className="w-full px-1 bg-green-600 text-white rounded hover:bg-green-500 cursor-pointer" onClick={() => handleEditClick(table)}>Edit</button>
+                                            <button className="w-full px-1 bg-red-600 text-white rounded hover:bg-red-500 cursor-pointer" onClick={() => handleDelete(table._id)}>Delete</button>
+                                            <button className="w-full px-1 bg-blue-600 text-white rounded hover:bg-blue-500 cursor-pointer" onClick={() => handleCheckOut(table)}>Check Out</button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                    </tbody>
+                </table>
+            </div>
 
-            {showEditModal && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Sửa đơn đặt bàn</h2>
-                            <button 
-                                className={styles.closeBtn}
-                                onClick={() => setShowEditModal(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Tên:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={editTable?.name || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Số lượng:</label>
-                            <input
-                                type="number"
-                                name="quantity"
-                                value={editTable?.quantity || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Giờ:</label>
-                            <input
-                                type="time"
-                                name="time"
-                                value={editTable?.time || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Ngày:</label>
-                            <input
-                                type="date"
-                                name="date"
-                                value={editTable?.date || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Số điện thoại:</label>
-                            <input
-                                type="tel"
-                                name="phone"
-                                value={editTable?.phone || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Email:</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={editTable?.email || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Dịp đặc biệt:</label>
-                            <input
-                                type="text"
-                                name="occasion"
-                                value={editTable?.occasion || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Yêu cầu đặc biệt:</label>
-                            <textarea
-                                name="specialRequest"
-                                value={editTable?.specialRequest || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Loại bàn:</label>
-                            <input
-                                type="text"
-                                name="tableType"
-                                value={editTable?.tableType || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Trạng thái cọc:</label>
-                            <div className={styles.radioGroup}>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="depositStatus"
-                                        value="paid"
-                                        checked={editTable?.depositStatus === "paid"}
-                                        onChange={handleEditChange}
-                                    />
-                                    Đã thanh toán
-                                </label>
-                                <label style={{ marginLeft: '16px' }}>
-                                    <input
-                                        type="radio"
-                                        name="depositStatus"
-                                        value="unpaid"
-                                        checked={editTable?.depositStatus === "unpaid"}
-                                        onChange={handleEditChange}
-                                    />
-                                    Chưa thanh toán
-                                </label>
-                            </div>
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Tổng hoá đơn:</label>
-                            <input
-                                type="text"
-                                name="bill"
-                                value={editTable?.bill || ''}
-                                onChange={handleEditChange}
-                            />
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Trạng thái:</label>
-                            <select
-                                name="status"
-                                value={editTable?.status || ''}
-                                onChange={handleEditChange}
-                            >
-                                <option value="pending">Chưa dùng</option>
-                                <option value="using">Đang dùng</option>
-                                <option value="used">Đã dùng</option>
-                                <option value="canceled">Đã hủy</option>
-                            </select>
-                        </div>
-                        <div className={styles.modalButtons}>
-                            <button onClick={handleEditSave}>Lưu</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Modals (Tailwind) */}
+            <AddModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onAddSuccess={(added) => setTables(prev => [...prev, added])}
+            />
 
-            {showDeleteModal && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Xác nhận xóa</h2>
-                            <button 
-                                className={styles.closeBtn}
-                                onClick={() => {
-                                    setShowDeleteModal(false);
-                                    setTableToDelete(null);
-                                }}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <p>Bạn có chắc chắn muốn xoá đơn đặt bàn của "{tableToDelete?.name}"?</p>
-                        <div className={styles.modalButtons}>
-                            <button onClick={confirmDelete} className={styles.deleteBtn}>Có</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <EditModal
+                isOpen={showEditModal}
+                onClose={() => { setShowEditModal(false); setEditTable(null); }}
+                table={editTable}
+                getAuthHeaders={getAuthHeaders}
+                onEditSuccess={(updated) => setTables(prev => prev.map(t => t._id === updated._id ? updated : t))}
+            />
 
-            {showCheckOutModal && (
-                <div className={styles.modal}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Trả bàn: {checkOutTable?.name}</h2>
-                            <button 
-                                className={styles.closeBtn}
-                                onClick={() => setShowCheckOutModal(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className={styles.formGroup}>
-                            <label>Nhập tổng giá trị hoá đơn:</label>
-                            <input
-                                type="number"
-                                value={billTotal}
-                                onChange={e => setBillTotal(e.target.value)}
-                                placeholder="Nhập số tiền (VND)"
-                            />
-                            {!billTotal || Number(billTotal) < 0 ? (
-                                <span className={styles.errorMessage}>Vui lòng nhập tổng giá trị hóa đơn hợp lệ!</span>
-                            ) : null}
-                        </div>
-                        <div className={styles.modalButtons}>
-                            <button onClick={handleConfirmCheckOut}>Xác nhận</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DeleteModal
+                isOpen={showDeleteModal}
+                onClose={() => { setShowDeleteModal(false); setTableToDelete(null); }}
+                table={tableToDelete}
+                getAuthHeaders={getAuthHeaders}
+                onDeleteSuccess={(id) => setTables(prev => prev.filter(t => t._id !== id))}
+            />
+
+            <CheckoutModal
+                isOpen={showCheckOutModal}
+                onClose={() => { setShowCheckOutModal(false); setCheckOutTable(null); setBillTotal(''); }}
+                table={checkOutTable}
+                getAuthHeaders={getAuthHeaders}
+                onCheckoutSuccess={(updated) => setTables(prev => prev.map(t => t._id === updated._id ? updated : t))}
+            />
         </div>
     );
 }
 
-export default Table;
+export default Booking;
