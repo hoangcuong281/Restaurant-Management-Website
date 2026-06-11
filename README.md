@@ -75,3 +75,9 @@ View Menu & Restaurant Information
   - Improve user experience in restaurant booking
   - Provide efficient management tools for restaurant owners
   - Practice full-stack development with real-world scenarios
+
+<img width="25%" alt="image" src="https://github.com/user-attachments/assets/10ad67eb-7fe7-4175-bd34-15c8fe240a17" />
+<img width="25%" alt="image" src="https://github.com/user-attachments/assets/8c791747-7c31-4a10-8e99-71389d8ae307" />
+<img width="25%" alt="image" src="https://github.com/user-attachments/assets/8872f202-f6ba-491d-9af4-fe07b24018c3" />
+<img width="25%" alt="image" src="https://github.com/user-attachments/assets/b9c3c257-4ae3-4015-9b8e-2cd284e1ee12" />
+
